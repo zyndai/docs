@@ -39,8 +39,8 @@ Zynd creates a **universal agent network** where:
 
 | Resource          | URL                                                                               |
 | ----------------- | --------------------------------------------------------------------------------- |
-| Zynd AI Website   | [https://zynd.ai](https://zynd.ai)                                               |
-| Dashboard         | [https://dashboard.zynd.ai](https://dashboard.zynd.ai)                           |
+| Zynd AI Website   | [https://zynd.ai](https://www.zynd.ai)                                           |
+| GitHub            | [https://github.com/zyndai](https://github.com/zyndai)                           |
 | Registry API      | [https://registry.zynd.ai](https://registry.zynd.ai)                             |
 | Documentation     | [https://docs.zynd.ai](https://docs.zynd.ai)                                     |
 | x402 Protocol     | [https://www.x402.org](https://www.x402.org)                                      |

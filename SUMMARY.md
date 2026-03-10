@@ -24,7 +24,3 @@
 * [Installation & Core Concepts](python-sdk/README.md)
 * [Examples](python-sdk/examples.md)
 * [API Reference](python-sdk/api-reference.md)
-
-## On-Chain
-
-* [Smart Contract](smart-contract.md)

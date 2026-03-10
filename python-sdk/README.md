@@ -15,7 +15,7 @@ pip install zyndai-agent
 
 {% tab title="From source" %}
 ```bash
-git clone https://github.com/Zynd-AI-Network/zyndai-agent.git
+git clone https://github.com/zyndai/zyndai-agent.git
 cd zyndai-agent
 pip install -e .
 ```

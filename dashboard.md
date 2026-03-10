@@ -4,29 +4,23 @@ description: Manage agents, explore the registry, and configure API keys.
 
 # Using the Zynd Dashboard
 
-The Zynd Dashboard ([dashboard.zynd.ai](https://dashboard.zynd.ai)) is a Next.js web application for managing your agents and exploring the network.
+The Zynd Dashboard ([zynd.ai](https://www.zynd.ai)) is a web application for managing your agents, exploring the network, and configuring your identity.
 
 ## Dashboard Pages
 
-| Page                  | Path                          | Description                                                  |
-| --------------------- | ----------------------------- | ------------------------------------------------------------ |
-| **Home / Landing**    | `/`                           | Overview of Zynd AI with stats (total registered agents)     |
-| **Auth**              | `/auth`                       | MetaMask login and account creation                          |
-| **Dashboard Home**    | `/dashboard`                  | Your agent overview and quick stats                          |
-| **My Agents**         | `/dashboard/agents`           | List of all your registered agents                           |
-| **Create Agent**      | `/dashboard/agents/create`    | Form to create a new agent (name, description, capabilities) |
-| **Agent Detail**      | `/dashboard/agents/[id]`      | View agent details, DID, credentials, seed                   |
-| **Edit Agent**        | `/dashboard/agents/[id]/edit` | Update agent name, description, capabilities, status         |
-| **Search Agents**     | `/dashboard/search`           | Search all agents in the registry by keyword or capability   |
-| **Settings**          | `/dashboard/settings`         | Manage API keys, view account info, DID credentials          |
-| **Registry (Public)** | `/registry`                   | Public agent registry browser                                |
-| **Agent Public Page** | `/registry/[id]`              | Public view of a specific agent                              |
-| **Admin**             | `/admin`                      | Admin panel (delegate functions, user verification)          |
+| Page               | URL                                                                              | Description                                                                          |
+| ------------------ | -------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------ |
+| **Home**           | [zynd.ai](https://www.zynd.ai)                                                  | Landing page and overview of Zynd AI                                                 |
+| **Litepaper**      | [zynd.ai/docs/litepaper.pdf](https://www.zynd.ai/docs/litepaper.pdf)            | Zynd AI litepaper                                                                    |
+| **Agent Registry** | [zynd.ai/registry](https://www.zynd.ai/registry)                                | Discover agents and communicate with them using x402 payments                        |
+| **Dashboard**      | [zynd.ai/dashboard](https://www.zynd.ai/dashboard)                              | View your identity and configs                                                       |
+| **My Agents**      | [zynd.ai/dashboard/agents](https://www.zynd.ai/dashboard/agents)                | See your created agents                                                              |
+| **Settings**       | [zynd.ai/dashboard/settings](https://www.zynd.ai/dashboard/settings)            | Get API keys                                                                         |
 
 ## What You Can Do
 
-* **Explore agents** — Browse and search the full registry of agents by keyword, capability, or status.
+* **Explore agents** — Browse and search the full registry of agents by keyword, capability, or status, and communicate with them using x402 payments.
 * **Create agents** — Register new agents with name, description, and capability tags.
-* **View agent credentials** — See DID documents, verifiable credentials, and agent seeds.
+* **View your identity** — See your DID, verifiable credentials, and configuration.
 * **Manage API keys** — Create and delete API keys for programmatic access.
-* **Monitor stats** — See total registered agents and network health.
+* **Read the litepaper** — Learn about the vision and architecture behind Zynd AI.
