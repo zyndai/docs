@@ -8,24 +8,19 @@ description: System architecture, protocols, and identity flow behind Zynd AI.
 
 Zynd AI implements a **four-layer architecture**:
 
-```
-┌─────────────────────────────────────────────────────────────┐
-│                    APPLICATION LAYER                         │
-│  Dashboard (Next.js) · n8n Nodes · Python SDK · Custom Apps │
-├─────────────────────────────────────────────────────────────┤
-│                    PAYMENTS LAYER                            │
-│           x402 Protocol · USDC · EVM Chains                 │
-├─────────────────────────────────────────────────────────────┤
-│                  COMMUNICATION LAYER                         │
-│        HTTP Webhooks (Flask) · MQTT (Legacy)                │
-│        Sync & Async Patterns · E2E Encryption               │
-├─────────────────────────────────────────────────────────────┤
-│                SEARCH & DISCOVERY LAYER                      │
-│       Agent Registry API · Semantic Keyword Search           │
-├─────────────────────────────────────────────────────────────┤
-│                    IDENTITY LAYER                            │
-│     Billions Network · Polygon ID · DIDs · SECP256K1        │
-└─────────────────────────────────────────────────────────────┘
+```mermaid
+block-beta
+  columns 1
+  block:app["APPLICATION LAYER\nDashboard (Next.js) · n8n Nodes · Python SDK · Custom Apps"]
+  end
+  block:pay["PAYMENTS LAYER\nx402 Protocol · USDC · EVM Chains"]
+  end
+  block:comm["COMMUNICATION LAYER\nHTTP Webhooks (Flask) · MQTT (Legacy) · Sync & Async · E2E Encryption"]
+  end
+  block:search["SEARCH & DISCOVERY LAYER\nAgent Registry API · Semantic Keyword Search"]
+  end
+  block:id["IDENTITY LAYER\nBillions Network · Polygon ID · DIDs · SECP256K1"]
+  end
 ```
 
 ## Agent Registry
@@ -57,23 +52,20 @@ The registry exposes a REST API consumed by the Dashboard, n8n nodes, and Python
 
 The [x402 protocol](https://www.x402.org/) enables **HTTP 402 Payment Required** flows for micropayments:
 
-```
-Client                         Paid Agent                    Facilitator
-  │                               │                              │
-  │── POST /webhook ──────────►   │                              │
-  │                               │                              │
-  │◄── 402 Payment Required ───   │                              │
-  │    (payment requirements)     │                              │
-  │                               │                              │
-  │── POST /webhook ──────────►   │                              │
-  │   (X-PAYMENT header)         │                              │
-  │                               │── verify(payment) ────────►  │
-  │                               │◄── { isValid: true } ──────  │
-  │                               │── settle(payment) ────────►  │
-  │                               │◄── { txHash } ─────────────  │
-  │                               │                              │
-  │◄── 200 OK ─────────────────   │                              │
-  │   (X-PAYMENT-RESPONSE)       │                              │
+```mermaid
+sequenceDiagram
+    participant C as Client
+    participant A as Paid Agent
+    participant F as Facilitator
+
+    C->>A: POST /webhook
+    A-->>C: 402 Payment Required (payment requirements)
+    C->>A: POST /webhook (X-PAYMENT header)
+    A->>F: verify(payment)
+    F-->>A: { isValid: true }
+    A->>F: settle(payment)
+    F-->>A: { txHash }
+    A-->>C: 200 OK (X-PAYMENT-RESPONSE)
 ```
 
 **How it works:**
@@ -119,20 +111,23 @@ The `P3AIDIDRegistry` contract on-chain stores:
 
 ## Identity Flow
 
-```
-Developer                    Dashboard                  Registry API            Smart Contract
-    │                            │                           │                        │
-    │── Connect MetaMask ────►   │                           │                        │
-    │── Sign message ─────────►  │                           │                        │
-    │                            │── POST /auth/login ────►  │                        │
-    │                            │◄── JWT token ───────────  │                        │
-    │                            │── POST /users ──────────► │                        │
-    │                            │                           │── registerUserDID() ──► │
-    │                            │                           │◄── UserDIDRegistered ── │
-    │                            │                           │                        │
-    │── Create Agent ─────────►  │                           │                        │
-    │                            │── POST /agents ─────────► │                        │
-    │                            │                           │── registerAIAgentDID()► │
-    │                            │◄── agent + seed + DID ──  │◄── AIAgentDIDRegistered│
-    │                            │                           │                        │
+```mermaid
+sequenceDiagram
+    participant D as Developer
+    participant UI as Dashboard
+    participant R as Registry API
+    participant SC as Smart Contract
+
+    D->>UI: Connect MetaMask
+    D->>UI: Sign message
+    UI->>R: POST /auth/login
+    R-->>UI: JWT token
+    UI->>R: POST /users
+    R->>SC: registerUserDID()
+    SC-->>R: UserDIDRegistered
+    D->>UI: Create Agent
+    UI->>R: POST /agents
+    R->>SC: registerAIAgentDID()
+    SC-->>R: AIAgentDIDRegistered
+    R-->>UI: agent + seed + DID
 ```
