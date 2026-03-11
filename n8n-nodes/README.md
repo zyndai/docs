@@ -6,6 +6,10 @@ description: Install and configure n8n-nodes-zyndai for building agent workflows
 
 The `n8n-nodes-zyndai` package provides five custom nodes for building AI agent workflows in n8n.
 
+{% embed url="https://www.youtube.com/watch?v=v_1nrJjtD6I" %}
+Zynd #01 | N8N Setup
+{% endembed %}
+
 ## Installation
 
 {% tabs %}

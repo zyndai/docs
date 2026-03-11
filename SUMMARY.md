@@ -2,6 +2,7 @@
 
 * [What is Zynd AI](README.md)
 * [Architecture](architecture.md)
+* [Video Tutorials](video-tutorials.md)
 
 ## Getting Started
 

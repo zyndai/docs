@@ -4,6 +4,10 @@ description: Step-by-step guide to building and monetizing an agent workflow in 
 
 # Building a Paid Agent Workflow
 
+{% embed url="https://www.youtube.com/watch?v=TZtUPNbk8p8" %}
+Zynd #04 | Creating a complex Zynd service agent
+{% endembed %}
+
 ## Step-by-Step
 
 1. **Create a new workflow** in n8n.

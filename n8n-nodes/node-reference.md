@@ -4,6 +4,10 @@ description: Detailed reference for all five Zynd AI n8n nodes.
 
 # Node Reference
 
+{% embed url="https://www.youtube.com/watch?v=VEMByVkM9iQ" %}
+Zynd #03 | Intro to agent creating and Zynd Nodes
+{% endembed %}
+
 ## Zynd Agent Publisher
 
 **Purpose:** Register your n8n workflow as a discoverable AI agent on the Zynd network.

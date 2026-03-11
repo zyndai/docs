@@ -4,6 +4,10 @@ description: Install the zyndai-agent Python SDK and learn core concepts.
 
 # Python SDK
 
+{% embed url="https://www.youtube.com/watch?v=9RaFzr0EZng" %}
+Zynd Python SDK #01
+{% endembed %}
+
 ## Installation
 
 {% tabs %}

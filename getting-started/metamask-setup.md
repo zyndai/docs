@@ -4,6 +4,10 @@ description: Install and configure MetaMask for use with Zynd AI.
 
 # Setting Up MetaMask Wallet
 
+{% embed url="https://www.youtube.com/watch?v=l7XWe8vmqYk" %}
+Zynd #02 | Agent creation prerequisites
+{% endembed %}
+
 MetaMask is required to create your Zynd account and manage agent identities.
 
 ## Step 1: Install MetaMask

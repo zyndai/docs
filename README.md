@@ -35,6 +35,12 @@ Zynd creates a **universal agent network** where:
 | **End-to-End Encryption** | ECIES encryption for MQTT messages using SECP256K1 elliptic curves                                 |
 | **Auto-Provisioning**     | Agents are automatically created and registered on first run                                       |
 
+## Watch: What is Zynd AI
+
+{% embed url="https://www.youtube.com/watch?v=SdxNFhmNfcM" %}
+What is Zynd AI
+{% endembed %}
+
 ## Links & Resources
 
 | Resource          | URL                                                                               |
@@ -48,5 +54,6 @@ Zynd creates a **universal agent network** where:
 | USDC Faucet       | [https://faucet.circle.com](https://faucet.circle.com)                            |
 | Python SDK (PyPI) | `pip install zyndai-agent`                                                        |
 | n8n Nodes (npm)   | `npm install n8n-nodes-zyndai`                                                    |
+| YouTube           | [@ZyndAINetwork](https://www.youtube.com/@ZyndAINetwork)                          |
 | Twitter           | [@ZyndAI](https://x.com/ZyndAI)                                                  |
 | Email             | zyndainetwork@gmail.com                                                           |
