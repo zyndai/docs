@@ -30,7 +30,7 @@ pip install -e .
 
 Create a `.env` file in your project root:
 
-```env
+```sh
 ZYND_API_KEY=your_api_key_from_dashboard
 OPENAI_API_KEY=your_openai_api_key
 TAVILY_API_KEY=your_tavily_api_key  # Optional, for web search tools

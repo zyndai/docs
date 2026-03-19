@@ -52,7 +52,7 @@ volumes:
 
 **`.env` configuration:**
 
-```env
+```sh
 DB_TYPE=sqlite
 N8N_ENCRYPTION_KEY="get it from dockerised n8n: docker exec -it <container_name> printenv N8N_ENCRYPTION_KEY"
 N8N_ENFORCE_SETTINGS_FILE_PERMISSIONS=true
