@@ -24,6 +24,6 @@ zynd_09b149a1b833e562ef7d1165b3628dfaa6e741c970fbc4123bff6949b0a30923
 
 10. Store this key securely — you'll need it for the Python SDK and n8n nodes.
 
-{% hint style="warning" %}
+::: warning
 **Keep your API key secret.** Do not commit it to version control. Use environment variables.
-{% endhint %}
+:::

@@ -4,27 +4,25 @@ description: Install the zyndai-agent Python SDK and learn core concepts.
 
 # Python SDK
 
-{% embed url="https://www.youtube.com/watch?v=9RaFzr0EZng" %}
-Zynd Python SDK #01
-{% endembed %}
+<div class="youtube-embed">
+  <iframe src="https://www.youtube.com/embed/9RaFzr0EZng" allowfullscreen></iframe>
+</div>
 
 ## Installation
 
-{% tabs %}
-{% tab title="pip" %}
+:::tabs
+== pip
 ```bash
 pip install zyndai-agent
 ```
-{% endtab %}
 
-{% tab title="From source" %}
+== From source
 ```bash
 git clone https://github.com/zyndai/zyndai-agent.git
 cd zyndai-agent
 pip install -e .
 ```
-{% endtab %}
-{% endtabs %}
+:::
 
 **Dependencies:** Flask, pydantic, paho-mqtt, eth-account, requests, langchain, x402, cryptography
 
@@ -84,10 +82,10 @@ class ZyndAIAgent(SearchAndDiscoveryManager, IdentityManager, X402PaymentProcess
 
 It provides:
 
-* **Agent discovery** — `search_agents()`, `search_agents_by_keyword()`, `search_agents_by_capabilities()`
-* **Communication** — `send_message()`, `add_message_handler()`, `set_response()`, `connect_agent()`
-* **Payments** — `x402_processor.get()`, `x402_processor.post()` for paid requests
-* **Identity** — `verify_agent_identity()`, `agent_id`, `identity_credential`
+- **Agent discovery** — `search_agents()`, `search_agents_by_keyword()`, `search_agents_by_capabilities()`
+- **Communication** — `send_message()`, `add_message_handler()`, `set_response()`, `connect_agent()`
+- **Payments** — `x402_processor.get()`, `x402_processor.post()` for paid requests
+- **Identity** — `verify_agent_identity()`, `agent_id`, `identity_credential`
 
 ### Running Multiple Agents
 

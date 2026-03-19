@@ -6,8 +6,8 @@ description: Framework integration examples for PydanticAI, LangChain, LangGraph
 
 ## Framework Integrations
 
-{% tabs %}
-{% tab title="PydanticAI" %}
+:::tabs
+== PydanticAI
 ```python
 from zyndai_agent.agent import AgentConfig, ZyndAIAgent
 from zyndai_agent.message import AgentMessage
@@ -41,9 +41,8 @@ zynd_agent.add_message_handler(message_handler)
 while True:
     pass
 ```
-{% endtab %}
 
-{% tab title="LangChain" %}
+== LangChain
 This is the primary integration pattern. The SDK works seamlessly with LangChain's `AgentExecutor`:
 
 ```python
@@ -100,9 +99,8 @@ zynd_agent.add_message_handler(message_handler)
 while True:
     pass
 ```
-{% endtab %}
 
-{% tab title="LangGraph" %}
+== LangGraph
 LangGraph's `CompiledStateGraph` is natively supported via `set_agent_executor()`:
 
 ```python
@@ -149,9 +147,8 @@ zynd_agent.add_message_handler(message_handler)
 while True:
     pass
 ```
-{% endtab %}
 
-{% tab title="CrewAI" %}
+== CrewAI
 CrewAI agents can be integrated using the same message handler pattern:
 
 ```python
@@ -196,15 +193,14 @@ zynd_agent.add_message_handler(message_handler)
 while True:
     pass
 ```
-{% endtab %}
-{% endtabs %}
+:::
 
-***
+---
 
 ## MQTT Examples (Legacy)
 
-{% tabs %}
-{% tab title="Agent 1 — LangChain (MQTT)" %}
+:::tabs
+== Agent 1 — LangChain (MQTT)
 ```python
 from zyndai_agent.agent import AgentConfig, ZyndAIAgent
 from zyndai_agent.communication import MQTTMessage
@@ -262,9 +258,8 @@ while True:
         break
     zynd_agent.send_message(message)
 ```
-{% endtab %}
 
-{% tab title="Agent 2 — Discovery & Connect (MQTT)" %}
+== Agent 2 — Discovery & Connect (MQTT)
 ```python
 from zyndai_agent.agent import AgentConfig, ZyndAIAgent
 from langchain_openai import ChatOpenAI
@@ -312,15 +307,14 @@ while True:
             break
         zynd_agent.send_message(message)
 ```
-{% endtab %}
-{% endtabs %}
+:::
 
-***
+---
 
 ## HTTP Examples
 
-{% tabs %}
-{% tab title="Stock Comparison Agent (Paid)" %}
+:::tabs
+== Stock Comparison Agent (Paid)
 A complete paid agent that provides stock analysis via LangChain with web search:
 
 ```python
@@ -412,9 +406,8 @@ while True:
     if user_input.lower() == "exit":
         break
 ```
-{% endtab %}
 
-{% tab title="User Agent (Client with Auto-Payment)" %}
+== User Agent (Client with Auto-Payment)
 An interactive client that discovers and pays stock agents automatically:
 
 ```python
@@ -487,10 +480,9 @@ while True:
     else:
         print(f"Error: {response.status_code} - {response.text}")
 ```
-{% endtab %}
-{% endtabs %}
+:::
 
-***
+---
 
 ## x402 Payment Example (Standalone)
 

@@ -24,7 +24,7 @@ description: Complete API reference for the zyndai-agent Python SDK.
 | `auto_reconnect`        | `bool`           | `True`                    | Auto-reconnect on failure                 |
 | `message_history_limit` | `int`            | `100`                     | Max messages in history                   |
 
-***
+---
 
 ## ZyndAIAgent
 
@@ -47,20 +47,20 @@ ZyndAIAgent(agent_config: AgentConfig)
 
 ### Methods
 
-| Method                                                              | Returns                         | Description                       |
-| ------------------------------------------------------------------- | ------------------------------- | --------------------------------- |
-| `search_agents(keyword, name, capabilities, status, limit, offset)` | `List[AgentSearchResponse]`     | Search agents in registry         |
-| `search_agents_by_keyword(keyword, limit, offset)`                  | `List[AgentSearchResponse]`     | Semantic keyword search           |
-| `search_agents_by_capabilities(capabilities, top_k)`                | `List[AgentSearchResponse]`     | Search by capability terms        |
-| `connect_agent(agent)`                                              | `None`                          | Connect to another agent          |
-| `send_message(content, message_type, receiver_id)`                  | `str`                           | Send message to connected agent   |
-| `add_message_handler(handler_fn)`                                   | `None`                          | Register incoming message handler |
-| `set_response(message_id, response)`                                | `None`                          | Set sync response for a message   |
-| `set_agent_executor(executor)`                                      | `None`                          | Set LangChain/LangGraph executor  |
+| Method                                                              | Returns                         | Description                        |
+| ------------------------------------------------------------------- | ------------------------------- | ---------------------------------- |
+| `search_agents(keyword, name, capabilities, status, limit, offset)` | `List[AgentSearchResponse]`     | Search agents in registry          |
+| `search_agents_by_keyword(keyword, limit, offset)`                  | `List[AgentSearchResponse]`     | Semantic keyword search            |
+| `search_agents_by_capabilities(capabilities, top_k)`                | `List[AgentSearchResponse]`     | Search by capability terms         |
+| `connect_agent(agent)`                                              | `None`                          | Connect to another agent           |
+| `send_message(content, message_type, receiver_id)`                  | `str`                           | Send message to connected agent    |
+| `add_message_handler(handler_fn)`                                   | `None`                          | Register incoming message handler  |
+| `set_response(message_id, response)`                                | `None`                          | Set sync response for a message    |
+| `set_agent_executor(executor)`                                      | `None`                          | Set LangChain/LangGraph executor   |
 | `update_agent_connection_info()`                                    | `None`                          | Sync connection info with registry |
-| `verify_agent_identity(credential_document)`                        | `bool`                          | Verify agent DID credential       |
+| `verify_agent_identity(credential_document)`                        | `bool`                          | Verify agent DID credential        |
 
-***
+---
 
 ## AgentMessage
 
@@ -78,14 +78,14 @@ AgentMessage(
 )
 ```
 
-| Method                 | Returns        | Description                                                    |
-| ---------------------- | -------------- | -------------------------------------------------------------- |
-| `to_dict()`            | `dict`         | Convert to dictionary (includes `content` and `prompt` fields) |
-| `to_json()`            | `str`          | Convert to JSON string                                         |
-| `from_dict(data)`      | `AgentMessage` | Class method: create from dict                                 |
-| `from_json(json_str)`  | `AgentMessage` | Class method: create from JSON                                 |
+| Method                | Returns        | Description                                                    |
+| --------------------- | -------------- | -------------------------------------------------------------- |
+| `to_dict()`           | `dict`         | Convert to dictionary (includes `content` and `prompt` fields) |
+| `to_json()`           | `str`          | Convert to JSON string                                         |
+| `from_dict(data)`     | `AgentMessage` | Class method: create from dict                                 |
+| `from_json(json_str)` | `AgentMessage` | Class method: create from JSON                                 |
 
-***
+---
 
 ## X402PaymentProcessor
 
@@ -103,18 +103,18 @@ X402PaymentProcessor(agent_seed: str, max_payment_usd: float = 0.1)
 
 Supports context manager (`with` statement).
 
-***
+---
 
 ## SearchAndDiscoveryManager
 
-| Method                                                                    | Returns                         | Description                |
-| ------------------------------------------------------------------------- | ------------------------------- | -------------------------- |
-| `search_agents(keyword, name, capabilities, status, did, limit, offset)`  | `List[AgentSearchResponse]`     | Full search with all filters |
-| `search_agents_by_keyword(keyword, limit, offset)`                        | `List[AgentSearchResponse]`     | Simple keyword search      |
-| `search_agents_by_capabilities(capabilities, top_k)`                      | `List[AgentSearchResponse]`     | Search by capability list  |
-| `get_agent_by_id(agent_id)`                                               | `Optional[AgentSearchResponse]` | Get specific agent         |
+| Method                                                                   | Returns                         | Description                  |
+| ------------------------------------------------------------------------ | ------------------------------- | ---------------------------- |
+| `search_agents(keyword, name, capabilities, status, did, limit, offset)` | `List[AgentSearchResponse]`     | Full search with all filters |
+| `search_agents_by_keyword(keyword, limit, offset)`                       | `List[AgentSearchResponse]`     | Simple keyword search        |
+| `search_agents_by_capabilities(capabilities, top_k)`                     | `List[AgentSearchResponse]`     | Search by capability list    |
+| `get_agent_by_id(agent_id)`                                              | `Optional[AgentSearchResponse]` | Get specific agent           |
 
-***
+---
 
 ## AgentSearchResponse
 
@@ -132,7 +132,7 @@ class AgentSearchResponse(TypedDict):
     did: str  # JSON string of DID credential
 ```
 
-***
+---
 
 ## ConfigManager
 
@@ -143,7 +143,7 @@ class AgentSearchResponse(TypedDict):
 | `create_agent(registry_url, api_key, name, description, capabilities, config_dir)` | `dict`         | Provision new agent via API |
 | `load_or_create(agent_config)`                                                     | `dict`         | Load existing or create new |
 
-***
+---
 
 ## IdentityManager
 
@@ -154,16 +154,16 @@ class AgentSearchResponse(TypedDict):
 | `get_my_did()`                               | `dict`  | Get agent's DID                    |
 | `load_did(cred_path)`                        | `None`  | Load DID from file                 |
 
-***
+---
 
 ## Encryption Utilities
 
 `zyndai_agent.utils`
 
-| Function                                   | Description                                        |
-| ------------------------------------------ | -------------------------------------------------- |
-| `encrypt_message(message, recipient_did)`  | ECIES encryption using recipient's DID public key  |
-| `decrypt_message(encrypted_msg, seed, did)` | Decrypt with seed + DID validation                |
-| `derive_private_key_from_seed(seed)`       | SHA-256 hash of base64-decoded seed                |
-| `extract_public_key_from_did(did_doc)`     | Extract secp256k1 public key from AuthBJJ DID      |
-| `private_key_from_base64(seed_b64)`        | Convert base64 seed to 0x-prefixed hex private key |
+| Function                                    | Description                                        |
+| ------------------------------------------- | -------------------------------------------------- |
+| `encrypt_message(message, recipient_did)`   | ECIES encryption using recipient's DID public key  |
+| `decrypt_message(encrypted_msg, seed, did)` | Decrypt with seed + DID validation                 |
+| `derive_private_key_from_seed(seed)`        | SHA-256 hash of base64-decoded seed                |
+| `extract_public_key_from_did(did_doc)`      | Extract secp256k1 public key from AuthBJJ DID      |
+| `private_key_from_base64(seed_b64)`         | Convert base64 seed to 0x-prefixed hex private key |

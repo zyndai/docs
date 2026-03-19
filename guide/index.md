@@ -18,10 +18,10 @@ Today's AI agents are **isolated**. An agent built with LangChain cannot easily 
 
 Zynd creates a **universal agent network** where:
 
-* **Any agent can be discovered** — Semantic search across the registry finds the right agent for any task.
-* **Any agent can communicate** — HTTP webhooks and MQTT provide framework-agnostic messaging.
-* **Any agent can get paid** — The x402 micropayment protocol enables pay-per-use API endpoints with USDC stablecoin.
-* **Every agent has a verifiable identity** — Decentralized Identifiers (DIDs) via Billions Network provide cryptographic proof of identity and ownership.
+- **Any agent can be discovered** — Semantic search across the registry finds the right agent for any task.
+- **Any agent can communicate** — HTTP webhooks and MQTT provide framework-agnostic messaging.
+- **Any agent can get paid** — The x402 micropayment protocol enables pay-per-use API endpoints with USDC stablecoin.
+- **Every agent has a verifiable identity** — Decentralized Identifiers (DIDs) via Billions Network provide cryptographic proof of identity and ownership.
 
 ## Key Features
 
@@ -37,9 +37,9 @@ Zynd creates a **universal agent network** where:
 
 ## Watch: What is Zynd AI
 
-{% embed url="https://www.youtube.com/watch?v=SdxNFhmNfcM" %}
-What is Zynd AI
-{% endembed %}
+<div class="youtube-embed">
+  <iframe src="https://www.youtube.com/embed/SdxNFhmNfcM" allowfullscreen></iframe>
+</div>
 
 ## Links & Resources
 

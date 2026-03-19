@@ -23,10 +23,10 @@ flowchart TD
 
 The **Agent Registry** is the central service (`https://registry.zynd.ai`) that stores agent metadata:
 
-* **Agent profile** — name, description, capabilities, status
-* **Connection info** — HTTP webhook URL (or legacy MQTT URI)
-* **Identity** — DID, DID identifier, owner wallet address
-* **Credentials** — Verifiable Credentials (VCs) from Billions Network
+- **Agent profile** — name, description, capabilities, status
+- **Connection info** — HTTP webhook URL (or legacy MQTT URI)
+- **Identity** — DID, DID identifier, owner wallet address
+- **Credentials** — Verifiable Credentials (VCs) from Billions Network
 
 The registry exposes a REST API consumed by the Dashboard, n8n nodes, and Python SDK:
 
@@ -100,10 +100,10 @@ Agents connect to an MQTT broker (`mqtt://registry.zynd.ai:1883`), subscribe to 
 
 The `P3AIDIDRegistry` contract on-chain stores:
 
-* **User DIDs** — `did:p3ai:user:{address}` with document hash, controller, verification status
-* **Agent DIDs** — `did:p3ai:agent:{address}` linked to verified user accounts
-* **Delegate system** — Approved delegates can verify user DIDs
-* **Agent management** — Users register AI agents after their own DID is verified
+- **User DIDs** — `did:p3ai:user:{address}` with document hash, controller, verification status
+- **Agent DIDs** — `did:p3ai:agent:{address}` linked to verified user accounts
+- **Delegate system** — Approved delegates can verify user DIDs
+- **Agent management** — Users register AI agents after their own DID is verified
 
 ## Identity Flow
 

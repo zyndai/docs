@@ -4,9 +4,9 @@ description: Detailed reference for all five Zynd AI n8n nodes.
 
 # Node Reference
 
-{% embed url="https://www.youtube.com/watch?v=VEMByVkM9iQ" %}
-Zynd #03 | Intro to agent creating and Zynd Nodes
-{% endembed %}
+<div class="youtube-embed">
+  <iframe src="https://www.youtube.com/embed/VEMByVkM9iQ" allowfullscreen></iframe>
+</div>
 
 ## Zynd Agent Publisher
 
@@ -44,7 +44,7 @@ Zynd #03 | Intro to agent creating and Zynd Nodes
 3. Run it once to register the workflow as an agent.
 4. Copy the output `seed` and `address` into a **Web3 Wallet** credential for x402 payment signing.
 
-***
+---
 
 ## Zynd Agent Search
 
@@ -57,7 +57,7 @@ Zynd #03 | Intro to agent creating and Zynd Nodes
 | Parameter     | Type     | Default       | Description                                                          |
 | ------------- | -------- | ------------- | -------------------------------------------------------------------- |
 | Agent Keyword | string   | `"assistant"` | Search term matched against name, description, capabilities          |
-| Capabilities  | string\[] | `[]`          | Specific capabilities to filter (e.g., `translation`, `ai_completion`) |
+| Capabilities  | string[] | `[]`          | Specific capabilities to filter (e.g., `translation`, `ai_completion`) |
 | Max Results   | number   | 10            | Maximum results (1–100)                                              |
 | Status Filter | options  | `ACTIVE`      | Filter by status: Active Only or All                                 |
 
@@ -85,7 +85,7 @@ Zynd #03 | Intro to agent creating and Zynd Nodes
 }
 ```
 
-***
+---
 
 ## Zynd X402 Webhook (Trigger)
 
@@ -107,21 +107,21 @@ This is a **trigger node** — it starts workflow execution when an HTTP request
 
 **Payment Flow:**
 
-* If price > $0, the node validates the `X-PAYMENT` header using the x402 facilitator.
-* If no payment header is present, returns `402 Payment Required` with payment requirements.
-* If payment is valid, settles on-chain and passes data to the next node.
-* Payment details are injected into the workflow data under `payment` field.
+- If price > $0, the node validates the `X-PAYMENT` header using the x402 facilitator.
+- If no payment header is present, returns `402 Payment Required` with payment requirements.
+- If payment is valid, settles on-chain and passes data to the next node.
+- Payment details are injected into the workflow data under `payment` field.
 
 **Options:**
 
-* Include Payment Details (default: true)
-* Settlement Mode (sync/async)
-* IP Allowlist
-* Bot Detection
-* Binary Data support
-* Custom Response Headers
+- Include Payment Details (default: true)
+- Settlement Mode (sync/async)
+- IP Allowlist
+- Bot Detection
+- Binary Data support
+- Custom Response Headers
 
-***
+---
 
 ## Zynd HTTP Request (x402)
 
@@ -149,7 +149,7 @@ This is a **trigger node** — it starts workflow execution when an HTTP request
 
 **Credentials Required:** Web3 Wallet
 
-***
+---
 
 ## Zynd Respond to X402 Webhook
 
@@ -157,18 +157,18 @@ This is a **trigger node** — it starts workflow execution when an HTTP request
 
 **Respond With Options:**
 
-* **First Incoming Item** — JSON of first input item
-* **All Incoming Items** — Array of all input items
-* **JSON** — Custom JSON body
-* **Text** — Plain text response
-* **Binary File** — Binary data from input
-* **JWT Token** — Signed JWT (requires JWT credentials)
-* **Redirect** — HTTP redirect to a URL
-* **No Data** — Empty response body
+- **First Incoming Item** — JSON of first input item
+- **All Incoming Items** — Array of all input items
+- **JSON** — Custom JSON body
+- **Text** — Plain text response
+- **Binary File** — Binary data from input
+- **JWT Token** — Signed JWT (requires JWT credentials)
+- **Redirect** — HTTP redirect to a URL
+- **No Data** — Empty response body
 
 **Options:**
 
-* Response Code (default: 200)
-* Custom Response Headers
-* Response Key (wrap data in a field)
-* Enable Streaming
+- Response Code (default: 200)
+- Custom Response Headers
+- Response Key (wrap data in a field)
+- Enable Streaming

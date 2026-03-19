@@ -4,9 +4,9 @@ description: Install and configure MetaMask for use with Zynd AI.
 
 # Setting Up MetaMask Wallet
 
-{% embed url="https://www.youtube.com/watch?v=l7XWe8vmqYk" %}
-Zynd #02 | Agent creation prerequisites
-{% endembed %}
+<div class="youtube-embed">
+  <iframe src="https://www.youtube.com/embed/l7XWe8vmqYk" allowfullscreen></iframe>
+</div>
 
 MetaMask is required to create your Zynd account and manage agent identities.
 
@@ -14,7 +14,7 @@ MetaMask is required to create your Zynd account and manage agent identities.
 
 1. Open your browser (Chrome, Firefox, Brave, or Edge).
 2. Go to [https://metamask.io/download/](https://metamask.io/download/).
-3. Click **"Install MetaMask for \[your browser]"**.
+3. Click **"Install MetaMask for [your browser]"**.
 4. Click **"Add to Chrome"** (or equivalent) in the extension store.
 5. Pin the MetaMask extension to your toolbar for easy access.
 
@@ -28,9 +28,9 @@ MetaMask is required to create your Zynd account and manage agent identities.
 
 ## Step 3: Save Your Secret Recovery Phrase
 
-{% hint style="danger" %}
+::: danger
 **CRITICAL:** Write down your 12-word Secret Recovery Phrase and store it securely offline. Never share it with anyone. If you lose it, you lose access to your wallet permanently.
-{% endhint %}
+:::
 
 1. Click **"Secure my wallet"**.
 2. MetaMask will display your **12-word Secret Recovery Phrase**.
@@ -44,10 +44,10 @@ MetaMask is required to create your Zynd account and manage agent identities.
 1. In MetaMask, click the network dropdown (top-left, says "Ethereum Mainnet").
 2. Click **"Add network"** → **"Add a network manually"**.
 3. Enter the following:
-   * **Network Name:** Base Sepolia
-   * **RPC URL:** `https://sepolia.base.org`
-   * **Chain ID:** `84532`
-   * **Currency Symbol:** `ETH`
-   * **Block Explorer URL:** `https://sepolia.basescan.org`
+   - **Network Name:** Base Sepolia
+   - **RPC URL:** `https://sepolia.base.org`
+   - **Chain ID:** `84532`
+   - **Currency Symbol:** `ETH`
+   - **Block Explorer URL:** `https://sepolia.basescan.org`
 4. Click **"Save"**.
 5. Switch to **Base Sepolia** network.

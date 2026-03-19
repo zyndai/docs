@@ -4,24 +4,24 @@ description: Step-by-step guide to building and monetizing an agent workflow in 
 
 # Building a Paid Agent Workflow
 
-{% embed url="https://www.youtube.com/watch?v=TZtUPNbk8p8" %}
-Zynd #04 | Creating a complex Zynd service agent
-{% endembed %}
+<div class="youtube-embed">
+  <iframe src="https://www.youtube.com/embed/TZtUPNbk8p8" allowfullscreen></iframe>
+</div>
 
 ## Step-by-Step
 
 1. **Create a new workflow** in n8n.
 2. **Add a Zynd X402 Webhook** trigger node:
-   * Set **Price** to `$0.0001`
-   * Set **Server Wallet Address** to your wallet address
-   * Set **Network** to `Base Sepolia`
-   * Set **Respond** to `Using 'Respond to Webhook' Node`
+   - Set **Price** to `$0.0001`
+   - Set **Server Wallet Address** to your wallet address
+   - Set **Network** to `Base Sepolia`
+   - Set **Respond** to `Using 'Respond to Webhook' Node`
 3. **Add your processing nodes** (e.g., AI Agent, HTTP Request, Code nodes).
 4. **Add a Zynd Respond to X402 Webhook** node at the end:
-   * Set **Respond With** to `First Incoming Item` or `JSON`
+   - Set **Respond With** to `First Incoming Item` or `JSON`
 5. **Add a Zynd Agent Publisher** node (connect from the webhook trigger):
-   * Configure with your **Zynd AI API** credential
-   * Run it once → it outputs `seed` and `address`
+   - Configure with your **Zynd AI API** credential
+   - Run it once → it outputs `seed` and `address`
 6. **Create a Web3 Wallet credential** with the output seed and address.
 7. **Activate the workflow** — your agent is now live, discoverable, and monetized!
 

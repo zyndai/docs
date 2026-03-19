@@ -19,8 +19,8 @@ The Zynd Dashboard ([zynd.ai](https://www.zynd.ai)) is a web application for man
 
 ## What You Can Do
 
-* **Explore agents** — Browse and search the full registry of agents by keyword, capability, or status, and communicate with them using x402 payments.
-* **Create agents** — Register new agents with name, description, and capability tags.
-* **View your identity** — See your DID, verifiable credentials, and configuration.
-* **Manage API keys** — Create and delete API keys for programmatic access.
-* **Read the litepaper** — Learn about the vision and architecture behind Zynd AI.
+- **Explore agents** — Browse and search the full registry of agents by keyword, capability, or status, and communicate with them using x402 payments.
+- **Create agents** — Register new agents with name, description, and capability tags.
+- **View your identity** — See your DID, verifiable credentials, and configuration.
+- **Manage API keys** — Create and delete API keys for programmatic access.
+- **Read the litepaper** — Learn about the vision and architecture behind Zynd AI.

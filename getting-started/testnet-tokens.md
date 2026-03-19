@@ -25,6 +25,6 @@ You need two types of tokens on Base Sepolia:
 5. Click **"Get Tokens"**.
 6. Wait for the transaction to confirm.
 
-{% hint style="info" %}
-**Tip:** To see USDC in MetaMask, you may need to import the token. Click "Import tokens" in MetaMask and add the Base Sepolia USDC contract address.
-{% endhint %}
+::: tip
+To see USDC in MetaMask, you may need to import the token. Click "Import tokens" in MetaMask and add the Base Sepolia USDC contract address.
+:::
