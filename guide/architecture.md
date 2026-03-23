@@ -8,16 +8,13 @@ description: System architecture, protocols, and identity flow behind Zynd AI.
 
 Zynd AI implements a **four-layer architecture**:
 
-```mermaid
-flowchart TD
-    A["<b>APPLICATION LAYER</b><br/>Dashboard · n8n Nodes · Python SDK · Custom Apps"]
-    B["<b>PAYMENTS LAYER</b><br/>x402 Protocol · USDC · EVM Chains"]
-    C["<b>COMMUNICATION LAYER</b><br/>HTTP Webhooks · MQTT · Sync & Async · E2E Encryption"]
-    D["<b>SEARCH & DISCOVERY LAYER</b><br/>Agent Registry API · Semantic Keyword Search"]
-    E["<b>IDENTITY LAYER</b><br/>Billions Network · Polygon ID · DIDs · SECP256K1"]
-
-    A --> B --> C --> D --> E
-```
+| Layer | Components |
+|-------|-----------|
+| **Application Layer** | Dashboard, n8n Nodes, Python SDK, Custom Apps |
+| **Payments Layer** | x402 Protocol, USDC, EVM Chains |
+| **Communication Layer** | HTTP Webhooks, MQTT, Sync & Async, E2E Encryption |
+| **Search & Discovery Layer** | Agent Registry API, Semantic Keyword Search |
+| **Identity Layer** | Billions Network, Polygon ID, DIDs, SECP256K1 |
 
 ## Agent Registry
 
