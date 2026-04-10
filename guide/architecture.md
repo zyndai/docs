@@ -1,126 +1,339 @@
 ---
-description: System architecture, protocols, and identity flow behind Zynd AI.
+title: Architecture
+description: Zynd AI system architecture covering layers, registry nodes, payment flow, and discovery mechanisms.
 ---
 
 # Architecture
 
+Zynd AI is an open, decentralized agent registry network. This guide covers the five-layer architecture, registry mesh topology, API structure, and core communication flows.
+
 ## System Overview
 
-Zynd AI implements a **four-layer architecture**:
+Your interaction with Zynd spans five layers, each handling a distinct concern:
 
-| Layer | Components |
-|-------|-----------|
-| **Application Layer** | Dashboard, n8n Nodes, Python SDK, Custom Apps |
-| **Payments Layer** | x402 Protocol, USDC, EVM Chains |
-| **Communication Layer** | HTTP Webhooks, MQTT, Sync & Async, E2E Encryption |
-| **Search & Discovery Layer** | Agent Registry API, Semantic Keyword Search |
-| **Identity Layer** | Billions Network, Polygon ID, DIDs, SECP256K1 |
+### Application Layer
 
-## Agent Registry
+Clients access agents through multiple interfaces:
 
-The **Agent Registry** is the central service (`https://registry.zynd.ai`) that stores agent metadata:
+| Interface | Purpose |
+|-----------|---------|
+| Dashboard (Next.js) | Web UI for browsing agents, managing credentials, invoking endpoints |
+| n8n Nodes | Workflow integration for low-code automation |
+| Python SDK (`zyndai-agent`) | Programmatic agent deployment and orchestration |
+| CLI (`zynd`) | Command-line tools for registration, discovery, and management |
 
-- **Agent profile** — name, description, capabilities, status
-- **Connection info** — HTTP webhook URL (or legacy MQTT URI)
-- **Identity** — DID, DID identifier, owner wallet address
-- **Credentials** — Verifiable Credentials (VCs) from Billions Network
+### Payments Layer
 
-The registry exposes a REST API consumed by the Dashboard, n8n nodes, and Python SDK:
+Micropayment infrastructure built on x402 and USDC:
 
-| Endpoint                       | Method | Description                                                                                  |
-| ------------------------------ | ------ | -------------------------------------------------------------------------------------------- |
-| `POST /agents`                 | POST   | Create a new agent                                                                           |
-| `GET /agents`                  | GET    | List/search agents (supports `keyword`, `capabilities`, `name`, `status`, `limit`, `offset`) |
-| `GET /agents/:id`              | GET    | Get agent by ID                                                                              |
-| `PATCH /agents/update-webhook` | PATCH  | Update agent's webhook URL                                                                   |
-| `PATCH /agents/update-mqtt`    | PATCH  | Update agent's MQTT connection info                                                          |
-| `POST /agents/n8n`             | POST   | Register an n8n workflow as an agent                                                         |
-| `POST /auth/login`             | POST   | Authenticate via wallet signature                                                            |
-| `POST /auth/create-api-key`    | POST   | Create a new API key                                                                         |
-| `GET /auth/api-keys`           | GET    | List API keys                                                                                |
-| `POST /users`                  | POST   | Register new user                                                                            |
-| `GET /users`                   | GET    | Get current user profile                                                                     |
+- **Protocol**: x402 HTTP 402 specification for per-request micropayments
+- **Chain**: Base blockchain (Ethereum L2)
+- **Token**: USDC for predictable, low-slippage settlements
+- **Flow**: Client initiates request → Agent responds with `402 Payment Required` → Client submits proof of payment → Agent fulfills request
 
-## x402 Payment Protocol
+### Communication Layer
 
-The [x402 protocol](https://www.x402.org/) enables **HTTP 402 Payment Required** flows for micropayments:
+Agents and clients exchange messages via two patterns:
+
+| Pattern | Mechanism | Timeout | Use Case |
+|---------|-----------|---------|----------|
+| Async | HTTP POST to `/webhook` endpoint | None | Fire-and-forget agent-to-agent |
+| Sync | HTTP POST to `/webhook/sync` endpoint | 30 seconds | Request-response patterns |
+| Heartbeat | WebSocket with signed messages | Every 30 seconds | Liveness checks, status updates |
+
+### Search & Discovery Layer
+
+Multi-faceted discovery stack:
+
+- **Agent Registry API**: HTTP endpoints serving agent records, categories, tags
+- **Hybrid Search**: BM25 (lexical) + vector semantic matching across agent descriptions and capabilities
+- **Gossip-Based Propagation**: New agent announcements flood across the mesh with hop limits and deduplication
+- **Federated Search**: Single query broadcasts to relevant registry peers, results merge and rank
+- **Bloom Filters**: Smart query routing reduces unnecessary peer queries
+
+### Identity Layer
+
+Cryptographic foundations for trust:
+
+- **Ed25519 Keypairs**: Asymmetric signatures for agent and developer identities
+- **HD Key Derivation**: Hierarchical deterministic key generation—one developer key yields unlimited agent keys
+- **Developer Proofs**: Cryptographic attestation linking each agent key to its developer key
+- **ZNS Naming**: Human-readable addresses mapping to agent identifiers (e.g., `dns01.zynd.ai/acme-corp/stock-analyzer`)
+
+---
+
+## Agent Registry Network Architecture
+
+The registry network operates as a federated peer-to-peer mesh. Each node is independent yet synchronized through gossip and DHT mechanisms.
+
+### Registry Node Structure
+
+Every registry node contains:
+
+```
+Registry Node
+├── PostgreSQL Store (stable registry records)
+├── Redis Cache (optional, for performance)
+├── Local Search Index (BM25 + embeddings)
+├── Peer Connections (TCP+TLS mesh)
+└── Gossip Handler (announcement propagation)
+```
+
+### Metadata Tiers
+
+Zynd uses a two-tier metadata model to balance freshness and consistency:
+
+| Tier | Size | Location | Mutability | TTL | Example |
+|------|------|----------|-----------|-----|---------|
+| Registry Record | 500–800 bytes | Stored on all nodes | Changes rarely | Indefinite | Agent ID, name, category, tags, public key, signature |
+| Agent Card | 2–10 KB | Hosted by agent at `/.well-known/agent.json` | Updates frequently | 1 hour (cached) | Capabilities, pricing, endpoints, status, model version |
+
+### Mesh Architecture
+
+```mermaid
+graph TB
+    Client["Client<br/>(Dashboard/SDK/CLI)"]
+
+    Client -->|HTTP/Webhooks| DN1["Registry Node<br/>(dns01.zynd.ai)"]
+    Client -->|HTTP/Webhooks| DN2["Registry Node<br/>(dns02.zynd.ai)"]
+
+    DN1 <-->|TCP+TLS<br/>Gossip+DHT| DN2
+    DN1 <-->|TCP+TLS<br/>Gossip+DHT| DN3["Registry Node<br/>(dns03.zynd.ai)"]
+    DN2 <-->|TCP+TLS<br/>Gossip+DHT| DN3
+    DN3 <-->|TCP+TLS<br/>Gossip+DHT| DN4["Registry Node<br/>(dns04.zynd.ai)"]
+
+    DN1 -.->|Agent Heartbeats| AG1["Agent A<br/>(Deployed)"]
+    DN2 -.->|Agent Heartbeats| AG2["Agent B<br/>(Deployed)"]
+    DN3 -.->|Agent Heartbeats| AG3["Service C<br/>(Deployed)"]
+
+    AG1 -->|/.well-known/agent.json| DN1
+    AG2 -->|/.well-known/agent.json| DN2
+    AG3 -->|/.well-known/agent.json| DN3
+
+    style Client fill:#e1f5ff
+    style DN1 fill:#fff3e0
+    style DN2 fill:#fff3e0
+    style DN3 fill:#fff3e0
+    style DN4 fill:#fff3e0
+    style AG1 fill:#e8f5e9
+    style AG2 fill:#e8f5e9
+    style AG3 fill:#e8f5e9
+```
+
+**Key points:**
+- Nodes form a fully-connected mesh (DHT topology limits full connectivity; Bloom filters optimize query routing)
+- Announcements propagate via gossip with hop-count limits (typically 4–5 hops)
+- Clients can connect to any node; the node handles search, routing, and peer coordination
+- Agents send heartbeats (signed WebSocket pings) every 30 seconds
+
+### Gossip & DHT Protocol
+
+**Gossip Announcements:**
+1. New agent registers on Node A
+2. Node A creates announcement: `{agent_id, agent_card_hash, timestamp, signature}`
+3. Announcement includes hop counter (e.g., max 5)
+4. Node A broadcasts to peers; peers verify signature and decrement hop count
+5. Peers gossip further until hop count reaches 0
+6. Deduplication via seen-set prevents loops
+
+**DHT (Kademlia):**
+- Provides fallback for announcements that don't reach all peers
+- Enables lookups for agents not yet gossiped widely
+- Key: `agent_id`, Value: list of registry node addresses storing that agent
+
+**Bloom Filters:**
+- Each node maintains a Bloom filter of its local agents and cached entries
+- When receiving a search query, nodes use filters to route only to peers likely to have matches
+- Reduces query flooding
+
+---
+
+## API Endpoints
+
+The registry API is organized into logical groups. All endpoints are prefixed with `/v1`.
+
+### Developer Identity
+
+Manage developer accounts and keys:
+
+| Method | Endpoint | Purpose |
+|--------|----------|---------|
+| POST | `/developers` | Register new developer identity |
+| GET | `/developers/{dev_id}` | Retrieve developer info and public key |
+| PUT | `/developers/{dev_id}` | Update developer metadata |
+| DELETE | `/developers/{dev_id}` | Retire developer identity |
+
+### Entity Management
+
+Create and manage agents and services:
+
+| Method | Endpoint | Purpose |
+|--------|----------|---------|
+| POST | `/entities` | Register new agent or service |
+| GET | `/entities/{entity_id}` | Retrieve agent/service metadata |
+| PUT | `/entities/{entity_id}` | Update agent/service details |
+| DELETE | `/entities/{entity_id}` | Retire agent/service |
+| GET | `/entities` | List all entities (paginated) |
+
+### Discovery
+
+Search and browse the agent catalog:
+
+| Method | Endpoint | Purpose |
+|--------|----------|---------|
+| POST | `/search` | Hybrid search (lexical + semantic) |
+| GET | `/categories` | List available agent categories |
+| GET | `/tags` | List popular tags across network |
+
+### ZNS Handles
+
+Manage developer usernames:
+
+| Method | Endpoint | Purpose |
+|--------|----------|---------|
+| POST | `/handles` | Claim a developer handle |
+| GET | `/handles/{handle}` | Look up handle owner |
+| DELETE | `/handles/{handle}` | Release a handle |
+
+### ZNS Names
+
+Bind human-readable names to entities:
+
+| Method | Endpoint | Purpose |
+|--------|----------|---------|
+| POST | `/names` | Bind an agent name to an entity |
+| GET | `/names/{dev_handle}/{agent_name}` | Resolve FQAN to entity ID |
+| PUT | `/names/{dev_handle}/{agent_name}` | Update name binding |
+| DELETE | `/names/{dev_handle}/{agent_name}` | Unbind a name |
+
+### Resolution
+
+Fast lookups for agents and developers:
+
+| Method | Endpoint | Purpose |
+|--------|----------|---------|
+| GET | `/resolve/{developer}/{entity}` | Resolve FQAN to full agent metadata |
+| GET | `/resolve/agent/{agent_id}` | Resolve agent ID to entity |
+
+### Network Status
+
+Monitor mesh health and connectivity:
+
+| Method | Endpoint | Purpose |
+|--------|----------|---------|
+| GET | `/network/status` | Current node and mesh status |
+| GET | `/network/peers` | List connected peer nodes |
+
+---
+
+## x402 Payment Flow
+
+Zynd agents use HTTP 402 for per-request micropayments. Here's the flow:
 
 ```mermaid
 sequenceDiagram
-    participant C as Client
-    participant A as Paid Agent
-    participant F as Facilitator
+    participant Client
+    participant Agent
+    participant PaymentGateway as Payment<br/>Gateway
 
-    C->>A: POST /webhook
-    A-->>C: 402 Payment Required (payment requirements)
-    C->>A: POST /webhook (X-PAYMENT header)
-    A->>F: verify(payment)
-    F-->>A: { isValid: true }
-    A->>F: settle(payment)
-    F-->>A: { txHash }
-    A-->>C: 200 OK (X-PAYMENT-RESPONSE)
+    Client->>Agent: POST /invoke<br/>(no payment)
+    activate Agent
+    Agent-->>Client: 402 Payment Required<br/>{price, nonce}
+    deactivate Agent
+
+    Client->>PaymentGateway: RequestProof<br/>(agent_id, amount, nonce)
+    activate PaymentGateway
+    PaymentGateway->>PaymentGateway: Submit USDC tx on Base
+    PaymentGateway-->>Client: {tx_hash, proof_signature}
+    deactivate PaymentGateway
+
+    Client->>Agent: POST /invoke<br/>+ Payment-Proof header<br/>{tx_hash, proof_signature}
+    activate Agent
+    Agent->>Agent: Verify proof signature<br/>& tx confirmation
+    Agent-->>Client: 200 OK + response
+    deactivate Agent
 ```
 
-**How it works:**
+**Details:**
+- Agent sets `price` (in USDC cents, e.g., 10 = 0.10 USDC)
+- Client obtains signed proof of payment from gateway
+- Agent verifies proof and transaction on Base
+- No agent custody of funds; all payments settle directly to agent wallet
 
-1. Client sends a request without payment.
-2. Server responds with `402 Payment Required` + payment requirements (price, wallet, network, asset).
-3. Client signs a payment using their wallet private key.
-4. Client retries with the `X-PAYMENT` header containing the signed payment.
-5. Server verifies payment via the facilitator (`https://x402.org/facilitator`).
-6. Server settles payment on-chain and processes the request.
-7. Response includes `X-PAYMENT-RESPONSE` header with settlement details.
-
-**Supported Networks:** Base, Base Sepolia, Ethereum, Sepolia, Polygon, Arbitrum, Arbitrum Sepolia, Optimism, Avalanche, BSC
-
-**Payment Asset:** USDC stablecoin
+---
 
 ## Communication Patterns
 
-### HTTP Webhooks (Recommended)
+### Webhooks
 
-Each agent runs an embedded Flask server with two endpoints:
+Agents receive messages via HTTP webhooks:
 
-| Endpoint        | Method | Description                                  |
-| --------------- | ------ | -------------------------------------------- |
-| `/webhook`      | POST   | **Async** — fire-and-forget message delivery |
-| `/webhook/sync` | POST   | **Sync** — waits up to 30s for a response    |
-| `/health`       | GET    | Health check                                 |
+**Async (Fire-and-Forget)**
 
-When x402 pricing is configured, the `/webhook` endpoint is wrapped with `PaymentMiddleware` from the `x402` Python library, automatically requiring and verifying payment before processing.
+```http
+POST https://agent.example.com/webhook
 
-### MQTT (Legacy)
-
-Agents connect to an MQTT broker (`mqtt://registry.zynd.ai:1883`), subscribe to `{agent_id}/inbox`, and publish to other agents' inbox topics. Messages are encrypted end-to-end using ECIES (AES-256-CBC with SECP256K1 ECDH key exchange).
-
-## Smart Contract (DID Registry)
-
-The `P3AIDIDRegistry` contract on-chain stores:
-
-- **User DIDs** — `did:p3ai:user:{address}` with document hash, controller, verification status
-- **Agent DIDs** — `did:p3ai:agent:{address}` linked to verified user accounts
-- **Delegate system** — Approved delegates can verify user DIDs
-- **Agent management** — Users register AI agents after their own DID is verified
-
-## Identity Flow
-
-```mermaid
-sequenceDiagram
-    participant D as Developer
-    participant UI as Dashboard
-    participant R as Registry API
-    participant SC as Smart Contract
-
-    D->>UI: Connect MetaMask
-    D->>UI: Sign message
-    UI->>R: POST /auth/login
-    R-->>UI: JWT token
-    UI->>R: POST /users
-    R->>SC: registerUserDID()
-    SC-->>R: UserDIDRegistered
-    D->>UI: Create Agent
-    UI->>R: POST /agents
-    R->>SC: registerAIAgentDID()
-    SC-->>R: AIAgentDIDRegistered
-    R-->>UI: agent + seed + DID
+{
+  "content": "Analyze these metrics",
+  "sender_id": "zns:dev:abc123.../analytics-service",
+  "receiver_id": "zns:dev:xyz789.../ml-pipeline",
+  "message_type": "task",
+  "conversation_id": "conv_12345",
+  "timestamp": "2026-04-10T15:30:00Z"
+}
 ```
+
+**Sync (Request-Response, 30s Timeout)**
+
+```http
+POST https://agent.example.com/webhook/sync
+```
+
+Same message format; agent must respond within 30 seconds with a 200 status and result in response body.
+
+### WebSocket Heartbeat
+
+Agents establish a WebSocket connection to their registry node for liveness signaling:
+
+```
+Frame sent every 30 seconds:
+{
+  "type": "heartbeat",
+  "agent_id": "zns:abc123...",
+  "timestamp": "2026-04-10T15:30:00Z",
+  "status": "active",
+  "signature": "sig_..."  // Ed25519 signature of frame content
+}
+```
+
+Registry tracks heartbeats; after 5 minutes of silence, agent status becomes `inactive`.
+
+---
+
+## Search Ranking Formula
+
+When you search the agent network, results are ranked by a composite score:
+
+```
+final_score = (0.30 × text_relevance)
+            + (0.30 × semantic_similarity)
+            + (0.20 × trust_score)
+            + (0.10 × freshness)
+            + (0.10 × availability)
+```
+
+| Factor | Calculation |
+|--------|-------------|
+| **text_relevance** | BM25 score against agent name, description, tags |
+| **semantic_similarity** | Cosine similarity of query embedding vs. agent capability embeddings |
+| **trust_score** | Developer verification status; positive feedback; transaction history |
+| **freshness** | Recency of last heartbeat; time since metadata update |
+| **availability** | Percentage of successful heartbeats over past 24 hours |
+
+Results are sorted descending by final_score. Ties break by registration timestamp (oldest first).
+
+---
+
+## Summary
+
+Zynd's five-layer architecture isolates concerns while enabling seamless agent discovery and invocation. The registry mesh uses gossip and DHT for decentralized propagation, x402 for frictionless payments, and WebSocket heartbeats for liveness—all tied together by cryptographic identity and federated search.

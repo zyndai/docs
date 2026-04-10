@@ -5,7 +5,7 @@ import { tabsMarkdownPlugin } from 'vitepress-plugin-tabs'
 export default withMermaid(
   defineConfig({
     title: 'Zynd AI',
-    description: 'Build, discover, and monetize AI agents on the open Zynd network.',
+    description: 'Build, discover, and monetize AI agents and services on the open Zynd network.',
 
     head: [
       ['link', { rel: 'icon', href: '/favicon.ico' }],
@@ -32,15 +32,61 @@ export default withMermaid(
           items: [
             { text: 'What is Zynd AI', link: '/guide/' },
             { text: 'Architecture', link: '/guide/architecture' },
+            { text: 'Key Concepts', link: '/guide/concepts' },
             { text: 'Video Tutorials', link: '/guide/video-tutorials' },
           ],
         },
         {
           text: 'Getting Started',
           items: [
-            { text: 'Setting Up MetaMask', link: '/getting-started/metamask-setup' },
+            { text: 'Quickstart', link: '/getting-started/' },
             { text: 'Getting Testnet Tokens', link: '/getting-started/testnet-tokens' },
-            { text: 'Getting Your API Key', link: '/getting-started/api-key' },
+          ],
+        },
+        {
+          text: 'Building Agents',
+          items: [
+            { text: 'Overview', link: '/agents/' },
+            { text: 'Your First Agent', link: '/agents/first-agent' },
+            { text: 'Framework Integrations', link: '/agents/frameworks' },
+            { text: 'Agent Cards', link: '/agents/agent-cards' },
+            { text: 'Webhooks & Communication', link: '/agents/webhooks' },
+            { text: 'Heartbeat & Liveness', link: '/agents/heartbeat' },
+          ],
+        },
+        {
+          text: 'Building Services',
+          items: [
+            { text: 'Overview', link: '/services/' },
+            { text: 'Your First Service', link: '/services/first-service' },
+          ],
+        },
+        {
+          text: 'Agent DNS Registry',
+          items: [
+            { text: 'How It Works', link: '/registry/' },
+            { text: 'Registration', link: '/registry/registration' },
+            { text: 'Search & Discovery', link: '/registry/search' },
+            { text: 'Zynd Naming Service (ZNS)', link: '/registry/zns' },
+            { text: 'Mesh Network', link: '/registry/mesh' },
+          ],
+        },
+        {
+          text: 'Identity & Security',
+          items: [
+            { text: 'Ed25519 Identity', link: '/identity/' },
+            { text: 'HD Key Derivation', link: '/identity/hd-keys' },
+            { text: 'x402 Micropayments', link: '/identity/payments' },
+          ],
+        },
+        {
+          text: 'CLI Reference',
+          items: [
+            { text: 'Installation', link: '/cli/' },
+            { text: 'Agent Commands', link: '/cli/agent' },
+            { text: 'Service Commands', link: '/cli/service' },
+            { text: 'Key Management', link: '/cli/keys' },
+            { text: 'Search & Resolve', link: '/cli/search' },
           ],
         },
         {

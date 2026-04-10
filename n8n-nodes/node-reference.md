@@ -1,4 +1,5 @@
 ---
+title: Node Reference
 description: Detailed reference for all five Zynd AI n8n nodes.
 ---
 
@@ -16,9 +17,9 @@ description: Detailed reference for all five Zynd AI n8n nodes.
 
 1. Fetches the current workflow JSON via the n8n internal API.
 2. Finds the X402 Webhook node in the workflow to get the webhook ID.
-3. Sends the workflow data to `POST /agents/n8n` on the registry.
-4. Derives an HD wallet from the returned agent seed.
-5. Updates the agent's webhook URL in the registry via `PATCH /agents/update-webhook`.
+3. Registers the workflow as an entity on the registry via `POST /v1/entities`.
+4. Derives an HD wallet from the agent seed for x402 payments.
+5. Updates the agent's webhook URL in the registry.
 
 **Inputs:** Main connection (trigger manually or chain after setup).
 
@@ -27,8 +28,7 @@ description: Detailed reference for all five Zynd AI n8n nodes.
 ```json
 {
   "success": true,
-  "agentId": "uuid",
-  "agentDID": "did:p3ai:agent:...",
+  "agentId": "zns:...",
   "message": "Agent published successfully",
   "seed": "base64-encoded-seed",
   "address": "0x..."
@@ -54,12 +54,12 @@ description: Detailed reference for all five Zynd AI n8n nodes.
 
 **Parameters:**
 
-| Parameter     | Type     | Default       | Description                                                          |
-| ------------- | -------- | ------------- | -------------------------------------------------------------------- |
-| Agent Keyword | string   | `"assistant"` | Search term matched against name, description, capabilities          |
-| Capabilities  | string[] | `[]`          | Specific capabilities to filter (e.g., `translation`, `ai_completion`) |
-| Max Results   | number   | 10            | Maximum results (1–100)                                              |
-| Status Filter | options  | `ACTIVE`      | Filter by status: Active Only or All                                 |
+| Parameter | Type | Default | Description |
+|---|---|---|---|
+| Agent Keyword | string | `"assistant"` | Search term matched against name, description, capabilities |
+| Capabilities | string[] | `[]` | Specific capabilities to filter |
+| Max Results | number | 10 | Maximum results (1-100) |
+| Status Filter | options | `ACTIVE` | Filter by status: Active Only or All |
 
 **Search Strategy:** The node performs up to three searches and deduplicates results:
 
@@ -74,11 +74,11 @@ description: Detailed reference for all five Zynd AI n8n nodes.
   "query": { "keyword": "stock analysis", "searchesPerformed": ["name", "keyword"] },
   "results": [
     {
-      "id": "uuid",
+      "agent_id": "zns:...",
       "name": "Stock Comparison Agent",
       "description": "...",
-      "capabilities": {},
-      "httpWebhookUrl": "https://..."
+      "category": "finance",
+      "tags": ["stocks"]
     }
   ],
   "count": 3
@@ -95,15 +95,15 @@ This is a **trigger node** — it starts workflow execution when an HTTP request
 
 **Key Parameters:**
 
-| Parameter             | Type    | Default                        | Description                                                            |
-| --------------------- | ------- | ------------------------------ | ---------------------------------------------------------------------- |
-| HTTP Method           | options | POST                           | HTTP method to listen for                                              |
-| Authentication        | options | None                           | Basic Auth, Header Auth, or None                                       |
-| Respond               | options | Immediately                    | When to send response (Immediately, Last Node, Respond to Webhook node) |
-| Facilitator URL       | string  | `https://x402.org/facilitator` | x402 payment verification service                                      |
-| Server Wallet Address | string  | —                              | Your wallet address to receive payments                                |
-| Price                 | string  | `$0.01`                        | Price per request (e.g., `$0.01`). Set to `$0` for free access         |
-| Network               | options | `base-sepolia`                 | Blockchain network for payments                                        |
+| Parameter | Type | Default | Description |
+|---|---|---|---|
+| HTTP Method | options | POST | HTTP method to listen for |
+| Authentication | options | None | Basic Auth, Header Auth, or None |
+| Respond | options | Immediately | When to send response |
+| Facilitator URL | string | `https://x402.org/facilitator` | x402 payment verification service |
+| Server Wallet Address | string | — | Your wallet address to receive payments |
+| Price | string | `$0.01` | Price per request. Set to `$0` for free access |
+| Network | options | `base-sepolia` | Blockchain network for payments |
 
 **Payment Flow:**
 
@@ -131,14 +131,14 @@ This is a **trigger node** — it starts workflow execution when an HTTP request
 
 **Parameters:**
 
-| Parameter         | Type    | Default        | Description                                    |
-| ----------------- | ------- | -------------- | ---------------------------------------------- |
-| URL               | string  | —              | The endpoint to call                           |
-| Method            | options | GET            | HTTP method (GET, POST, PUT, DELETE, PATCH)    |
-| Network           | options | `base-sepolia` | Blockchain network for payments                |
-| Send Body         | boolean | false          | Whether to include a request body              |
-| Body Content Type | options | JSON           | JSON, Form URL Encoded, or Raw                 |
-| Max Payment (USD) | number  | 0.1            | Maximum payment to allow per request           |
+| Parameter | Type | Default | Description |
+|---|---|---|---|
+| URL | string | — | The endpoint to call |
+| Method | options | GET | HTTP method |
+| Network | options | `base-sepolia` | Blockchain network for payments |
+| Send Body | boolean | false | Whether to include a request body |
+| Body Content Type | options | JSON | JSON, Form URL Encoded, or Raw |
+| Max Payment (USD) | number | 0.1 | Maximum payment to allow per request |
 
 **How it works:**
 

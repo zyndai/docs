@@ -1,4 +1,5 @@
 ---
+title: API Reference
 description: Complete API reference for the zyndai-agent Python SDK.
 ---
 
@@ -8,21 +9,27 @@ description: Complete API reference for the zyndai-agent Python SDK.
 
 `AgentConfig` extends Pydantic's `BaseModel`:
 
-| Field                   | Type             | Default                   | Description                               |
-| ----------------------- | ---------------- | ------------------------- | ----------------------------------------- |
-| `name`                  | `str`            | `""`                      | Agent display name                        |
-| `description`           | `str`            | `""`                      | Agent description for discovery           |
-| `capabilities`          | `Optional[dict]` | `None`                    | Capability tags (e.g., `{"ai": ["nlp"]}`) |
-| `webhook_host`          | `Optional[str]`  | `"0.0.0.0"`               | Host to bind webhook server               |
-| `webhook_port`          | `Optional[int]`  | `5000`                    | Port for webhook server                   |
-| `webhook_url`           | `Optional[str]`  | `None`                    | Public URL (auto-generated if None)       |
-| `api_key`               | `Optional[str]`  | `None`                    | Zynd API key (required for new agents)    |
-| `registry_url`          | `str`            | `"http://localhost:3002"` | Registry API URL                          |
-| `price`                 | `Optional[str]`  | `None`                    | x402 price per request (e.g., `"$0.01"`)  |
-| `config_dir`            | `Optional[str]`  | `None`                    | Custom config directory for identity      |
-| `mqtt_broker_url`       | `Optional[str]`  | `None`                    | MQTT broker URL (legacy)                  |
-| `auto_reconnect`        | `bool`           | `True`                    | Auto-reconnect on failure                 |
-| `message_history_limit` | `int`            | `100`                     | Max messages in history                   |
+| Field | Type | Default | Description |
+|---|---|---|---|
+| `name` | `str` | `""` | Agent display name |
+| `description` | `str` | `""` | Agent description for discovery |
+| `category` | `str` | `"general"` | Agent category |
+| `tags` | `List[str]` | `[]` | Tags for discovery |
+| `summary` | `str` | `""` | Short summary (max 200 chars) |
+| `webhook_host` | `Optional[str]` | `"0.0.0.0"` | Host to bind webhook server |
+| `webhook_port` | `Optional[int]` | `5000` | Port for webhook server |
+| `webhook_url` | `Optional[str]` | `None` | Public URL (auto-generated if None) |
+| `registry_url` | `str` | `"https://dns01.zynd.ai"` | Registry API URL |
+| `keypair_path` | `Optional[str]` | `None` | Path to Ed25519 keypair JSON |
+| `price` | `Optional[str]` | `None` | x402 price per request (e.g., `"$0.01"`) |
+| `config_dir` | `Optional[str]` | `None` | Custom config directory for agent files |
+| `use_ngrok` | `bool` | `False` | Enable ngrok tunnel |
+| `ngrok_auth_token` | `Optional[str]` | `None` | Ngrok auth token (or use `NGROK_AUTH_TOKEN` env) |
+| `auto_reconnect` | `bool` | `True` | Auto-reconnect heartbeat on failure |
+| `message_history_limit` | `int` | `100` | Max messages in history |
+| `developer_keypair_path` | `Optional[str]` | `None` | Path to developer keypair (for HD derivation) |
+| `agent_index` | `int` | `0` | HD derivation index |
+| `card_output` | `str` | `".well-known/agent.json"` | Agent Card output path |
 
 ---
 
@@ -36,29 +43,46 @@ ZyndAIAgent(agent_config: AgentConfig)
 
 ### Properties
 
-| Property              | Type                   | Description                             |
-| --------------------- | ---------------------- | --------------------------------------- |
-| `agent_id`            | `str`                  | Unique agent identifier                 |
-| `identity_credential` | `dict`                 | DID credential document                 |
-| `webhook_url`         | `str`                  | Agent's webhook URL                     |
-| `pay_to_address`      | `str`                  | Ethereum address for receiving payments |
-| `x402_processor`      | `X402PaymentProcessor` | Payment processor instance              |
-| `communication_mode`  | `str`                  | `"webhook"` or `"mqtt"`                 |
+| Property | Type | Description |
+|---|---|---|
+| `agent_id` | `str` | Unique agent identifier (`zns:<hash>`) |
+| `keypair` | `Keypair` | Ed25519 keypair (public_key, private_key, agent_id) |
+| `webhook_url` | `str` | Agent's public webhook URL |
+| `x402_processor` | `X402PaymentProcessor` | Payment processor instance |
 
 ### Methods
 
-| Method                                                              | Returns                         | Description                        |
-| ------------------------------------------------------------------- | ------------------------------- | ---------------------------------- |
-| `search_agents(keyword, name, capabilities, status, limit, offset)` | `List[AgentSearchResponse]`     | Search agents in registry          |
-| `search_agents_by_keyword(keyword, limit, offset)`                  | `List[AgentSearchResponse]`     | Semantic keyword search            |
-| `search_agents_by_capabilities(capabilities, top_k)`                | `List[AgentSearchResponse]`     | Search by capability terms         |
-| `connect_agent(agent)`                                              | `None`                          | Connect to another agent           |
-| `send_message(content, message_type, receiver_id)`                  | `str`                           | Send message to connected agent    |
-| `add_message_handler(handler_fn)`                                   | `None`                          | Register incoming message handler  |
-| `set_response(message_id, response)`                                | `None`                          | Set sync response for a message    |
-| `set_agent_executor(executor)`                                      | `None`                          | Set LangChain/LangGraph executor   |
-| `update_agent_connection_info()`                                    | `None`                          | Sync connection info with registry |
-| `verify_agent_identity(credential_document)`                        | `bool`                          | Verify agent DID credential        |
+| Method | Returns | Description |
+|---|---|---|
+| `invoke(input_text)` | `str` | Run the configured framework agent |
+| `set_langchain_agent(executor)` | `None` | Set LangChain AgentExecutor |
+| `set_langgraph_agent(graph)` | `None` | Set LangGraph CompiledStateGraph |
+| `set_crewai_agent(crew)` | `None` | Set CrewAI Crew |
+| `set_pydantic_ai_agent(agent)` | `None` | Set PydanticAI Agent |
+| `set_custom_agent(fn)` | `None` | Set custom callable (str → str) |
+| `add_message_handler(handler_fn)` | `None` | Register incoming message handler |
+| `set_response(message_id, response)` | `None` | Set sync response for a message |
+| `stop_heartbeat()` | `None` | Stop WebSocket heartbeat thread |
+
+---
+
+## ZyndService
+
+**Constructor:**
+
+```python
+ZyndService(service_config: ServiceConfig)
+```
+
+### Methods
+
+| Method | Returns | Description |
+|---|---|---|
+| `invoke(input_text)` | `str` | Run the handler function |
+| `set_handler(fn)` | `None` | Set handler function (str → str) |
+| `add_message_handler(handler_fn)` | `None` | Register incoming message handler |
+| `set_response(message_id, response)` | `None` | Set sync response for a message |
+| `stop_heartbeat()` | `None` | Stop WebSocket heartbeat thread |
 
 ---
 
@@ -68,7 +92,7 @@ ZyndAIAgent(agent_config: AgentConfig)
 AgentMessage(
     content: str,
     sender_id: str,
-    sender_did: dict = None,
+    sender_public_key: str = None,
     receiver_id: str = None,
     message_type: str = "query",
     message_id: str = None,         # Auto-generated UUID
@@ -78,28 +102,25 @@ AgentMessage(
 )
 ```
 
-| Method                | Returns        | Description                                                    |
-| --------------------- | -------------- | -------------------------------------------------------------- |
-| `to_dict()`           | `dict`         | Convert to dictionary (includes `content` and `prompt` fields) |
-| `to_json()`           | `str`          | Convert to JSON string                                         |
-| `from_dict(data)`     | `AgentMessage` | Class method: create from dict                                 |
-| `from_json(json_str)` | `AgentMessage` | Class method: create from JSON                                 |
+| Method | Returns | Description |
+|---|---|---|
+| `to_dict()` | `dict` | Convert to dictionary |
+| `to_json()` | `str` | Convert to JSON string |
+| `from_dict(data)` | `AgentMessage` | Class method: create from dict |
+| `from_json(json_str)` | `AgentMessage` | Class method: create from JSON |
 
 ---
 
 ## X402PaymentProcessor
 
-```python
-X402PaymentProcessor(agent_seed: str, max_payment_usd: float = 0.1)
-```
+Handles automatic x402 micropayments for HTTP requests.
 
-| Method                            | Returns             | Description                       |
-| --------------------------------- | ------------------- | --------------------------------- |
-| `get(url, **kwargs)`              | `requests.Response` | GET with auto-payment             |
-| `post(url, data, json, **kwargs)` | `requests.Response` | POST with auto-payment            |
-| `request(method, url, **kwargs)`  | `requests.Response` | Any HTTP method with auto-payment |
-| `close()`                         | `None`              | Close session                     |
-| `account.address`                 | `str`               | Wallet address                    |
+| Method | Returns | Description |
+|---|---|---|
+| `get(url, **kwargs)` | `requests.Response` | GET with auto-payment |
+| `post(url, data, json, **kwargs)` | `requests.Response` | POST with auto-payment |
+| `request(method, url, **kwargs)` | `requests.Response` | Any HTTP method with auto-payment |
+| `close()` | `None` | Close session |
 
 Supports context manager (`with` statement).
 
@@ -107,63 +128,80 @@ Supports context manager (`with` statement).
 
 ## SearchAndDiscoveryManager
 
-| Method                                                                   | Returns                         | Description                  |
-| ------------------------------------------------------------------------ | ------------------------------- | ---------------------------- |
-| `search_agents(keyword, name, capabilities, status, did, limit, offset)` | `List[AgentSearchResponse]`     | Full search with all filters |
-| `search_agents_by_keyword(keyword, limit, offset)`                       | `List[AgentSearchResponse]`     | Simple keyword search        |
-| `search_agents_by_capabilities(capabilities, top_k)`                     | `List[AgentSearchResponse]`     | Search by capability list    |
-| `get_agent_by_id(agent_id)`                                              | `Optional[AgentSearchResponse]` | Get specific agent           |
+| Method | Returns | Description |
+|---|---|---|
+| `search_agents(query, category, tags, ...)` | `dict` | Full hybrid search with filters |
 
----
-
-## AgentSearchResponse
+See also the standalone function:
 
 ```python
-class AgentSearchResponse(TypedDict):
-    id: str
-    name: str
-    description: str
-    mqttUri: Optional[str]
-    httpWebhookUrl: Optional[str]
-    inboxTopic: Optional[str]
-    capabilities: Optional[dict]
-    status: Optional[str]
-    didIdentifier: str
-    did: str  # JSON string of DID credential
+from zyndai_agent.dns_registry import search_agents, get_agent, register_agent, update_agent
+
+# Search
+results = search_agents(
+    registry_url="https://dns01.zynd.ai",
+    query="stock analysis",
+    category="finance",
+    tags=["stocks"],
+    entity_type="agent",
+    max_results=10,
+    federated=True,
+    enrich=True,
+)
+
+# Get by ID
+agent = get_agent(registry_url="https://dns01.zynd.ai", agent_id="zns:8e92...")
 ```
 
 ---
 
-## ConfigManager
+## Ed25519 Identity
 
-| Method                                                                             | Returns        | Description                 |
-| ---------------------------------------------------------------------------------- | -------------- | --------------------------- |
-| `load_config(config_dir)`                                                          | `dict or None` | Load saved config           |
-| `save_config(config, config_dir)`                                                  | `None`         | Save config to file         |
-| `create_agent(registry_url, api_key, name, description, capabilities, config_dir)` | `dict`         | Provision new agent via API |
-| `load_or_create(agent_config)`                                                     | `dict`         | Load existing or create new |
+```python
+from zyndai_agent.ed25519_identity import (
+    generate_keypair,
+    load_keypair,
+    save_keypair,
+    sign,
+    verify,
+    derive_agent_keypair,
+    create_derivation_proof,
+    generate_agent_id,
+)
+```
+
+| Function | Returns | Description |
+|---|---|---|
+| `generate_keypair()` | `Keypair` | Generate new Ed25519 keypair |
+| `load_keypair(path)` | `Keypair` | Load keypair from JSON file |
+| `save_keypair(kp, path, metadata)` | `None` | Save keypair to JSON file |
+| `sign(private_key, message)` | `str` | Sign message, returns `"ed25519:<b64>"` |
+| `verify(public_key_b64, message, signature)` | `bool` | Verify signature |
+| `derive_agent_keypair(dev_private_key, index)` | `Keypair` | HD-derive agent key |
+| `create_derivation_proof(dev_kp, agent_pub, index)` | `dict` | Create developer proof |
+| `generate_agent_id(public_key_bytes)` | `str` | Generate `zns:<hash>` from public key |
+
+### Keypair Object
+
+| Property | Type | Description |
+|---|---|---|
+| `agent_id` | `str` | `zns:<sha256_prefix>` |
+| `public_key_string` | `str` | `ed25519:<base64>` |
+| `public_key_b64` | `str` | Base64-encoded public key |
+| `private_key` | `Ed25519PrivateKey` | Private key object |
+| `private_key_bytes` | `bytes` | Raw 32-byte seed |
+| `private_key_b64` | `str` | Base64-encoded seed |
 
 ---
 
-## IdentityManager
+## Agent Card
 
-| Method                                       | Returns | Description                        |
-| -------------------------------------------- | ------- | ---------------------------------- |
-| `verify_agent_identity(credential_document)` | `bool`  | Verify DID credential via registry |
-| `get_identity_document()`                    | `str`   | Get identity document              |
-| `get_my_did()`                               | `dict`  | Get agent's DID                    |
-| `load_did(cred_path)`                        | `None`  | Load DID from file                 |
+```python
+from zyndai_agent.agent_card import build_agent_card, sign_agent_card, build_endpoints
+```
 
----
-
-## Encryption Utilities
-
-`zyndai_agent.utils`
-
-| Function                                    | Description                                        |
-| ------------------------------------------- | -------------------------------------------------- |
-| `encrypt_message(message, recipient_did)`   | ECIES encryption using recipient's DID public key  |
-| `decrypt_message(encrypted_msg, seed, did)` | Decrypt with seed + DID validation                 |
-| `derive_private_key_from_seed(seed)`        | SHA-256 hash of base64-decoded seed                |
-| `extract_public_key_from_did(did_doc)`      | Extract secp256k1 public key from AuthBJJ DID      |
-| `private_key_from_base64(seed_b64)`         | Convert base64 seed to 0x-prefixed hex private key |
+| Function | Returns | Description |
+|---|---|---|
+| `build_agent_card(agent_id, name, ...)` | `dict` | Build unsigned Agent Card |
+| `sign_agent_card(card, keypair)` | `dict` | Sign card with Ed25519 key |
+| `build_endpoints(base_url)` | `dict` | Generate endpoint URLs from base URL |

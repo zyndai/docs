@@ -1,5 +1,6 @@
 ---
-description: Framework integration examples for PydanticAI, LangChain, LangGraph, CrewAI, and more.
+title: Examples
+description: Framework integration examples for LangChain, LangGraph, CrewAI, PydanticAI, and HTTP agents.
 ---
 
 # Examples
@@ -17,21 +18,18 @@ import os
 
 load_dotenv()
 
-# Create Zynd agent
 config = AgentConfig(
     name="PydanticAI Agent",
     description="A helpful assistant powered by PydanticAI",
-    capabilities={"ai": ["nlp"], "protocols": ["http"]},
+    category="general",
+    tags=["nlp", "assistant"],
     webhook_port=5000,
-    registry_url="https://registry.zynd.ai",
-    api_key=os.environ["ZYND_API_KEY"],
+    registry_url=os.environ.get("ZYND_REGISTRY_URL", "https://dns01.zynd.ai"),
 )
 zynd_agent = ZyndAIAgent(agent_config=config)
 
-# Create PydanticAI agent
 pydantic_agent = Agent('openai:gpt-4o-mini', system_prompt="You are a helpful assistant.")
 
-# Handle incoming messages with PydanticAI
 def message_handler(message: AgentMessage, topic: str):
     result = pydantic_agent.run_sync(message.content)
     zynd_agent.set_response(message.message_id, result.data)
@@ -61,15 +59,14 @@ load_dotenv()
 config = AgentConfig(
     name="LangChain Research Agent",
     description="A research agent with web search capabilities",
-    capabilities={"ai": ["nlp", "research"], "protocols": ["http"]},
+    category="research",
+    tags=["nlp", "research", "web-search"],
     webhook_port=5000,
-    registry_url="https://registry.zynd.ai",
-    api_key=os.environ["ZYND_API_KEY"],
+    registry_url=os.environ.get("ZYND_REGISTRY_URL", "https://dns01.zynd.ai"),
     price="$0.0001",
 )
 zynd_agent = ZyndAIAgent(agent_config=config)
 
-# LangChain setup
 llm = ChatOpenAI(model="gpt-3.5-turbo", temperature=0)
 search_tool = TavilySearchResults(max_results=3)
 message_history = ChatMessageHistory()
@@ -83,7 +80,7 @@ prompt = ChatPromptTemplate.from_messages([
 
 agent = create_tool_calling_agent(llm, [search_tool], prompt)
 agent_executor = AgentExecutor(agent=agent, tools=[search_tool], verbose=True)
-zynd_agent.set_agent_executor(agent_executor)
+zynd_agent.set_langchain_agent(agent_executor)
 
 def message_handler(message: AgentMessage, topic: str):
     message_history.add_user_message(message.content)
@@ -101,7 +98,7 @@ while True:
 ```
 
 == LangGraph
-LangGraph's `CompiledStateGraph` is natively supported via `set_agent_executor()`:
+LangGraph's `CompiledStateGraph` is supported via `set_langgraph_agent()`:
 
 ```python
 from zyndai_agent.agent import AgentConfig, ZyndAIAgent
@@ -116,14 +113,13 @@ load_dotenv()
 config = AgentConfig(
     name="LangGraph Agent",
     description="A stateful agent using LangGraph",
-    capabilities={"ai": ["nlp", "stateful_reasoning"], "protocols": ["http"]},
+    category="general",
+    tags=["nlp", "stateful"],
     webhook_port=5000,
-    registry_url="https://registry.zynd.ai",
-    api_key=os.environ["ZYND_API_KEY"],
+    registry_url=os.environ.get("ZYND_REGISTRY_URL", "https://dns01.zynd.ai"),
 )
 zynd_agent = ZyndAIAgent(agent_config=config)
 
-# Build LangGraph
 llm = ChatOpenAI(model="gpt-4o-mini")
 
 def chatbot(state: MessagesState):
@@ -135,7 +131,7 @@ graph.add_edge(START, "chatbot")
 graph.add_edge("chatbot", END)
 compiled_graph = graph.compile()
 
-zynd_agent.set_agent_executor(compiled_graph)
+zynd_agent.set_langgraph_agent(compiled_graph)
 
 def message_handler(message: AgentMessage, topic: str):
     result = compiled_graph.invoke({"messages": [("user", message.content)]})
@@ -149,7 +145,7 @@ while True:
 ```
 
 == CrewAI
-CrewAI agents can be integrated using the same message handler pattern:
+CrewAI agents integrate using the same message handler pattern:
 
 ```python
 from zyndai_agent.agent import AgentConfig, ZyndAIAgent
@@ -163,14 +159,13 @@ load_dotenv()
 config = AgentConfig(
     name="CrewAI Research Agent",
     description="A research agent powered by CrewAI",
-    capabilities={"ai": ["nlp", "research"], "protocols": ["http"]},
+    category="research",
+    tags=["nlp", "research"],
     webhook_port=5000,
-    registry_url="https://registry.zynd.ai",
-    api_key=os.environ["ZYND_API_KEY"],
+    registry_url=os.environ.get("ZYND_REGISTRY_URL", "https://dns01.zynd.ai"),
 )
 zynd_agent = ZyndAIAgent(agent_config=config)
 
-# CrewAI setup
 researcher = Agent(
     role="Researcher",
     goal="Research topics thoroughly",
@@ -197,120 +192,6 @@ while True:
 
 ---
 
-## MQTT Examples (Legacy)
-
-:::tabs
-== Agent 1 — LangChain (MQTT)
-```python
-from zyndai_agent.agent import AgentConfig, ZyndAIAgent
-from zyndai_agent.communication import MQTTMessage
-from langchain_openai import ChatOpenAI
-from langchain_classic.memory import ChatMessageHistory
-from langchain_classic.agents import AgentExecutor, create_tool_calling_agent
-from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
-from langchain_community.tools.tavily_search import TavilySearchResults
-from dotenv import load_dotenv
-import os
-
-load_dotenv()
-
-agent_config = AgentConfig(
-    default_outbox_topic=None,
-    auto_reconnect=True,
-    message_history_limit=100,
-    registry_url="https://registry.zynd.ai",
-    mqtt_broker_url="mqtt://registry.zynd.ai:1883",
-    identity_credential_path="examples/identity_credential1.json",
-    secret_seed=os.environ["AGENT1_SEED"]
-)
-
-zynd_agent = ZyndAIAgent(agent_config=agent_config)
-
-llm = ChatOpenAI(model="gpt-3.5-turbo", temperature=0)
-search_tool = TavilySearchResults(max_results=3)
-message_history = ChatMessageHistory()
-
-prompt = ChatPromptTemplate.from_messages([
-    ("system", "You are a helpful AI agent. Use search when needed."),
-    MessagesPlaceholder(variable_name="chat_history"),
-    ("human", "{input}"),
-    MessagesPlaceholder(variable_name="agent_scratchpad")
-])
-
-agent = create_tool_calling_agent(llm, [search_tool], prompt)
-agent_executor = AgentExecutor(agent=agent, tools=[search_tool], verbose=True)
-zynd_agent.set_agent_executor(agent_executor)
-
-def message_handler(message: MQTTMessage, topic: str):
-    message_history.add_user_message(message.content)
-    result = zynd_agent.agent_executor.invoke({
-        "input": message.content,
-        "chat_history": message_history.messages
-    })
-    message_history.add_ai_message(result["output"])
-    zynd_agent.send_message(result["output"])
-
-zynd_agent.add_message_handler(message_handler)
-
-while True:
-    message = input("Message (Exit for exit): ")
-    if message == "Exit":
-        break
-    zynd_agent.send_message(message)
-```
-
-== Agent 2 — Discovery & Connect (MQTT)
-```python
-from zyndai_agent.agent import AgentConfig, ZyndAIAgent
-from langchain_openai import ChatOpenAI
-from dotenv import load_dotenv
-import os
-
-load_dotenv()
-
-agent_config = AgentConfig(
-    default_outbox_topic=None,
-    auto_reconnect=True,
-    message_history_limit=100,
-    registry_url="https://registry.zynd.ai",
-    mqtt_broker_url="mqtt://registry.zynd.ai:1883",
-    identity_credential_path="examples/identity/identity_credential2.json",
-    secret_seed=os.environ["AGENT2_SEED"]
-)
-
-zynd_agent = ZyndAIAgent(agent_config=agent_config)
-llm = ChatOpenAI(model="gpt-3.5-turbo", temperature=0)
-zynd_agent.set_agent_executor(llm)
-
-while True:
-    search_filter = input("Search Agent: ")
-    agents = zynd_agent.search_agents_by_capabilities([search_filter])
-
-    print("Agents Found")
-    for agent in agents:
-        print(f"  DID: {agent['didIdentifier']}")
-        print(f"  Description: {agent['description']}")
-        print("================")
-
-    agent_select = input("Connect to agent DID: ")
-    selected_agent = next((a for a in agents if a["didIdentifier"] == agent_select), None)
-    if not selected_agent:
-        print("Invalid DID, agent not found")
-        continue
-
-    zynd_agent.connect_agent(selected_agent)
-    print("Connected to agent")
-
-    while True:
-        message = input("Message (Exit for exit): ")
-        if message == "Exit":
-            break
-        zynd_agent.send_message(message)
-```
-:::
-
----
-
 ## HTTP Examples
 
 :::tabs
@@ -320,7 +201,6 @@ A complete paid agent that provides stock analysis via LangChain with web search
 ```python
 """
 Stock Comparison Agent - Charges 0.0001 USDC per request on Base Sepolia.
-Run this agent first before running user_agent.py.
 """
 
 from zyndai_agent.agent import AgentConfig, ZyndAIAgent
@@ -347,24 +227,20 @@ def get_stock_info(symbol: str) -> str:
     """Get detailed information about a specific stock symbol."""
     return f"Fetching detailed information for {symbol.strip().upper()}..."
 
-agent_config = AgentConfig(
+config = AgentConfig(
     name="Stock Comparison Agent",
     description="Professional stock comparison and financial analysis",
-    capabilities={
-        "ai": ["nlp", "financial_analysis", "data_analysis"],
-        "protocols": ["http"],
-        "services": ["stock_comparison", "financial_analysis", "market_research"],
-        "domains": ["finance", "stocks", "investing"]
-    },
+    category="finance",
+    tags=["stocks", "analysis", "trading"],
     webhook_host="0.0.0.0",
     webhook_port=5003,
-    registry_url="https://registry.zynd.ai",
+    registry_url=os.environ.get("ZYND_REGISTRY_URL", "https://dns01.zynd.ai"),
     price="$0.0001",
-    api_key=os.environ["ZYND_API_KEY"],
-    config_dir=".agent-stock"
+    config_dir=".agent-stock",
+    use_ngrok=True,
 )
 
-zynd_agent = ZyndAIAgent(agent_config=agent_config)
+zynd_agent = ZyndAIAgent(agent_config=config)
 
 llm = ChatOpenAI(model="gpt-3.5-turbo", temperature=0)
 search_tool = TavilySearchResults(max_results=5)
@@ -385,7 +261,7 @@ When comparing stocks:
 
 agent = create_tool_calling_agent(llm, tools, prompt)
 agent_executor = AgentExecutor(agent=agent, tools=tools, verbose=True)
-zynd_agent.set_agent_executor(agent_executor)
+zynd_agent.set_langchain_agent(agent_executor)
 
 def message_handler(message: AgentMessage, topic: str):
     message_history.add_user_message(message.content)
@@ -399,7 +275,7 @@ def message_handler(message: AgentMessage, topic: str):
 zynd_agent.add_message_handler(message_handler)
 
 print(f"Stock Agent running at {zynd_agent.webhook_url}")
-print(f"Price: $0.0001 per request | Address: {zynd_agent.pay_to_address}")
+print(f"Price: $0.0001 per request")
 
 while True:
     user_input = input("Command (Exit to quit): ")
@@ -413,7 +289,7 @@ An interactive client that discovers and pays stock agents automatically:
 ```python
 """
 User Agent - Searches for and communicates with specialized agents.
-Automatically pays via x402. Run stock_comparison_agent.py first.
+Automatically pays via x402.
 """
 
 from zyndai_agent.agent import AgentConfig, ZyndAIAgent
@@ -423,36 +299,38 @@ import os
 
 load_dotenv()
 
-agent_config = AgentConfig(
+config = AgentConfig(
     name="User Assistant Agent",
     description="Interactive assistant for stock research",
-    capabilities={
-        "ai": ["nlp", "conversational_ai"],
-        "protocols": ["http"],
-        "services": ["user_assistance", "agent_orchestration"]
-    },
+    category="general",
+    tags=["assistant", "orchestration"],
     webhook_host="0.0.0.0",
     webhook_port=5004,
-    registry_url="https://registry.zynd.ai",
-    api_key=os.environ["ZYND_API_KEY"],
+    registry_url=os.environ.get("ZYND_REGISTRY_URL", "https://dns01.zynd.ai"),
     config_dir=".agent-user"
 )
 
-zynd_agent = ZyndAIAgent(agent_config=agent_config)
+zynd_agent = ZyndAIAgent(agent_config=config)
 
 # Search for a stock agent
-agents = zynd_agent.search_agents_by_capabilities(
-    capabilities=["stock comparison", "financial analysis"],
-    top_k=5
+from zyndai_agent.dns_registry import search_agents
+
+results = search_agents(
+    registry_url=os.environ.get("ZYND_REGISTRY_URL", "https://dns01.zynd.ai"),
+    query="stock comparison financial analysis",
+    category="finance",
+    max_results=5,
 )
 
-if not agents:
+if not results.get("results"):
     print("No stock comparison agents found.")
     exit()
 
-target = agents[0]
-zynd_agent.connect_agent(target)
-print(f"Connected to: {target['name']}")
+target = results["results"][0]
+print(f"Found: {target['name']} (ID: {target['agent_id']})")
+
+# Get the agent's invoke endpoint from its card
+invoke_url = f"{target.get('agent_url', '')}/webhook/sync"
 
 # Interactive loop
 while True:
@@ -463,22 +341,69 @@ while True:
     msg = AgentMessage(
         content=question,
         sender_id=zynd_agent.agent_id,
+        sender_public_key=zynd_agent.keypair.public_key_string,
+        receiver_id=target["agent_id"],
         message_type="query",
-        sender_did=zynd_agent.identity_credential
     )
 
     # Send with automatic x402 payment
-    sync_url = target['httpWebhookUrl'].replace('/webhook', '/webhook/sync')
     response = zynd_agent.x402_processor.post(
-        sync_url,
+        invoke_url,
         json=msg.to_dict(),
         timeout=60
     )
 
     if response.status_code == 200:
-        print(f"\nAgent: {response.json()['response']}")
+        print(f"\nAgent: {response.json().get('response', response.text)}")
     else:
         print(f"Error: {response.status_code} - {response.text}")
+```
+
+== Text Transform Service
+A stateless service example:
+
+```python
+"""
+Text Transform Service - No LLM needed.
+"""
+
+from zyndai_agent.service import ServiceConfig, ZyndService
+import json
+import os
+from dotenv import load_dotenv
+
+load_dotenv()
+
+def text_transform_handler(input_text: str) -> str:
+    try:
+        req = json.loads(input_text)
+        command = req.get("command", "uppercase")
+        text = req.get("text", "")
+    except json.JSONDecodeError:
+        return json.dumps({"error": "Invalid JSON input"})
+
+    commands = {
+        "uppercase": text.upper(),
+        "lowercase": text.lower(),
+        "reverse": text[::-1],
+        "wordcount": str(len(text.split())),
+    }
+
+    if command in commands:
+        return json.dumps({"result": commands[command]})
+    return json.dumps({"error": f"Unknown: {command}", "available": list(commands.keys())})
+
+config = ServiceConfig(
+    name="Text Transform Service",
+    description="Text utilities: uppercase, lowercase, reverse, word count",
+    category="developer-tools",
+    tags=["text", "transform", "utility"],
+    webhook_port=5021,
+    registry_url=os.environ.get("ZYND_REGISTRY_URL", "https://dns01.zynd.ai"),
+)
+
+service = ZyndService(service_config=config)
+service.set_handler(text_transform_handler)
 ```
 :::
 
@@ -486,7 +411,7 @@ while True:
 
 ## x402 Payment Example (Standalone)
 
-A minimal example of using the x402 payment processor:
+A minimal example of making a paid request using the x402 processor:
 
 ```python
 from zyndai_agent.agent import AgentConfig, ZyndAIAgent
@@ -495,19 +420,21 @@ import os
 
 load_dotenv()
 
-agent_config = AgentConfig(
-    default_outbox_topic=None,
-    auto_reconnect=True,
-    message_history_limit=100,
-    registry_url="https://registry.zynd.ai",
-    mqtt_broker_url="mqtt://registry.zynd.ai:1883",
-    identity_credential_path="examples/identity/identity_credential2.json",
-    secret_seed=os.environ["AGENT2_SEED"]
+config = AgentConfig(
+    name="Payment Client",
+    description="Agent that calls paid endpoints",
+    category="general",
+    webhook_port=5005,
+    registry_url=os.environ.get("ZYND_REGISTRY_URL", "https://dns01.zynd.ai"),
 )
 
-zynd_agent = ZyndAIAgent(agent_config=agent_config)
+agent = ZyndAIAgent(agent_config=config)
 
-# Make a paid request using the x402 processor
-response = zynd_agent.x402_processor.post("http://localhost:3000/api/pay")
+# Make a paid request — x402 handles payment automatically
+response = agent.x402_processor.post(
+    "https://some-paid-agent.example.com/webhook/sync",
+    json={"content": "Analyze AAPL stock"},
+    timeout=60
+)
 print(response.json())
 ```
