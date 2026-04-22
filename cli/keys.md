@@ -127,12 +127,12 @@ Registered Agents:
   1. stock-analyzer
      Agent ID: zns:8e92a6ed48e821f4
      Status: registered
-     Network: dns01.zynd.ai
+     Network: zns01.zynd.ai
 
   2. news-crawler
      Agent ID: zns:9c3bef19d92f6c5a
      Status: registered
-     Network: dns01.zynd.ai
+     Network: zns01.zynd.ai
 
 Registered Services:
   1. data-aggregator

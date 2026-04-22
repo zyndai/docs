@@ -5,145 +5,121 @@ description: CLI commands for creating, registering, and running agents.
 
 # Agent Commands
 
-Learn how to create, register, and run agents using the `zynd agent` command suite.
+Commands for the agent lifecycle. One subcommand each: `init`, `run`.
+
+## zynd init
+
+Create a local developer keypair.
+
+```bash
+zynd init
+```
+
+Writes `~/.zynd/developer.json` (Ed25519). No registry interaction — this keypair is local-only until you register on a registry or claim a handle.
+
+Use this for testnet work. Use `zynd auth login` when you want a claimed handle.
 
 ## zynd auth login
 
-Authenticate your developer identity with the registry. This command opens your browser for KYC onboarding.
+Browser-based onboarding. Claim a developer handle on a registry.
 
 ```bash
-zynd auth login --registry https://dns01.zynd.ai
+zynd auth login --registry https://zns01.zynd.ai
 ```
 
-After you complete KYC verification, the CLI saves your developer keypair to `~/.zynd/developer.json`. Use this keypair to sign all subsequent operations.
+Opens your browser. Sign in with Google or GitHub, pick a handle (e.g. `alice`), approve. The CLI receives a callback, saves your keypair at `~/.zynd/developer.json`, and records the handle claim on the registry.
 
-**Flags:**
-- `--registry` — Registry URL (defaults to `ZYND_REGISTRY_URL` env var)
+**Flags**
+
+- `--registry URL` — registry URL (defaults to `ZYND_REGISTRY_URL`, then `https://zns01.zynd.ai`).
+- `--name NAME` — display name (defaults to prompt).
+- `--force` — overwrite existing `developer.json` if present.
 
 ## zynd agent init
 
-Create a new agent project interactively. The CLI scaffolds your project structure and generates configuration files.
+Scaffold a new agent project.
 
 ```bash
-zynd agent init
+zynd agent init --name stock-analyzer --framework langchain
 ```
 
-The wizard prompts you for:
-- **Framework** — Choose from: langchain, langgraph, crewai, pydantic-ai
-- **Agent name** — Your agent's identifier (e.g., `stock-analyzer`)
-
-The CLI generates these files:
+Creates in the current directory:
 
 | File | Purpose |
-|---|---|
-| `agent.config.json` | Agent configuration (name, description, tags, pricing) |
-| `agent.py` | Code skeleton with framework-specific imports |
-| `.env` | Environment variables template |
-| `~/.zynd/agents/<name>/keypair.json` | HD-derived Ed25519 keypair for signing |
+|------|---------|
+| `agent.py` | Framework-specific template code |
+| `agent.config.json` | `name`, `category`, `tags`, `entity_pricing`, `webhook_port`, `entity_index` |
+| `.env` | `ZYND_AGENT_KEYPAIR_PATH`, `ZYND_REGISTRY_URL`, API keys |
 
-## zynd agent register
+And derives a new agent keypair at `~/.zynd/agents/agent-<index>.json`.
 
-Register your agent on the Zynd network. The CLI reads your configuration, signs the registration payload, and uploads it to the registry.
+**Flags**
 
-```bash
-zynd agent register
-```
-
-The CLI:
-- Reads `agent.config.json` from your current directory
-- Generates an Agent Card with your agent's metadata
-- Signs the card with your agent keypair
-- Sends a POST request to `/v1/entities` on the registry
-- Creates a ZNS name if you've claimed a developer handle
-
-After registration, your agent receives a unique ID (e.g., `zns:8e92a6ed48e821f4...`).
-
-**Flags:**
-- `--config` — Path to agent.config.json (defaults to `./agent.config.json`)
+- `--name NAME` — agent name (prompted if omitted).
+- `--framework {langchain,langgraph,crewai,pydantic_ai,custom}` — framework template.
+- `--index N` — HD derivation index (auto-picks next unused if omitted).
 
 ## zynd agent run
 
-Start your agent and expose it to the Zynd network. The CLI manages the webhook server, heartbeat, and agent discovery.
+Start the agent. This is the single command that does **everything**:
 
 ```bash
-zynd agent run
+zynd agent run --port 5000
 ```
 
-The CLI starts:
-- **Flask webhook server** — Async and sync endpoints for incoming requests
-- **WebSocket heartbeat** — Periodic connection to the registry (every 30 seconds)
-- **Agent Card server** — Serves metadata at `/.well-known/agent.json`
-- **Ngrok tunnel** — Optional reverse proxy (if configured in `agent.config.json`)
+Flow:
 
-The startup output displays:
-- Your agent ID
-- Webhook URL (for incoming requests)
-- Pricing information
-- ZNS name (if claimed)
-- Heartbeat status
+1. Loads `.env` from the current directory.
+2. Resolves the agent keypair at `ZYND_AGENT_KEYPAIR_PATH`.
+3. Spawns `agent.py` as a subprocess.
+4. Polls `http://localhost:<port>/health` up to 30 seconds.
+5. Reads or generates `.well-known/agent.json` (signed Agent Card).
+6. Sends `POST /v1/entities` to `zns01.zynd.ai` with developer proof (creates on first run, updates on subsequent runs).
+7. Starts the WSS heartbeat loop (30 s cycle).
+8. Prints your FQAN (e.g. `zns01.zynd.ai/alice/stock-analyzer`).
+9. Blocks until the subprocess exits.
 
-**Flags:**
-- `--port` — Port for Flask server (defaults to 5000)
-- `--webhook-url` — Override webhook URL (usually auto-detected from Ngrok)
-- `--env` — Path to .env file (defaults to `./.env`)
+**Flags**
 
-## zynd agent update
+- `--config PATH` — path to `agent.config.json` (defaults to `./agent.config.json`).
+- `--port N` — override webhook port.
+- `--entity-url URL` — override public URL (defaults to ngrok URL if enabled, else derived from host/port).
+- `--registry URL` — override registry.
 
-Push configuration changes to the registry without stopping your agent. Update pricing, tags, description, or other metadata.
-
-```bash
-zynd agent update --config agent.config.json
-```
-
-The CLI:
-- Reads your updated `agent.config.json`
-- Regenerates the Agent Card
-- Signs it with your agent keypair
-- Sends a PATCH request to `/v1/entities/{agent_id}`
-
-Changes take effect immediately across the network.
-
-**Flags:**
-- `--config` — Path to agent.config.json (defaults to `./agent.config.json`)
-
-## Example: Complete Workflow
-
-Create, register, and run an agent from scratch.
+## Complete workflow
 
 ```bash
-# 1. Authenticate (one-time setup)
-zynd auth login
+# one-time
+zynd auth login --registry https://zns01.zynd.ai
 
-# 2. Create new agent
-zynd agent init
-# Answer prompts: framework=langchain, name=stock-analyzer
+# new agent
+zynd agent init --name stock-analyzer --framework langchain
+cd stock-analyzer
+# edit agent.py, add API keys to .env
+zynd agent run --port 5000
 
-# 3. Edit agent configuration
-nano agent.config.json
-# Add tags, pricing, description
-
-# 4. Register the agent
-zynd agent register
-
-# 5. Start the agent
-zynd agent run
-
-# 6. In another terminal, verify it's running
-zynd resolve zns:8e92a6ed48e821f4...
+# in another terminal
+zynd search "stock"
+zynd resolve zns01.zynd.ai/alice/stock-analyzer
 ```
 
 ## Troubleshooting
 
-**Agent won't register:**
-- Check that `agent.config.json` is valid JSON
-- Verify your developer keypair exists at `~/.zynd/developer.json`
-- Confirm the registry URL is reachable
+**Registration rejected — signature invalid**
+- Usually means the keypair at `ZYND_AGENT_KEYPAIR_PATH` doesn't match a key derived from your registered developer. Re-derive with `zynd keys derive --index N` and update `.env`.
 
-**Heartbeat fails:**
-- Check your internet connection
-- Ensure the webhook URL is publicly accessible
-- Look at logs for network errors
+**Heartbeat never connects**
+- Install the heartbeat extra: `pip install "zyndai-agent[heartbeat]"`.
+- Confirm `ZYND_REGISTRY_URL` points to a node with WebSocket support (every node does by default).
 
-**Port already in use:**
-- Use `--port` flag to run on a different port
-- Or kill the process using port 5000
+**Port already in use**
+- Override with `--port`, or kill the existing process.
+
+**Agent card 404**
+- SDK generates it on first run. If you're seeing 404 while the agent is starting, wait for `/health` to return 200.
+
+## Next
+
+- **[Service Commands](/cli/service)**
+- **[Key Management](/cli/keys)**
+- **[Search & Resolve](/cli/search)**

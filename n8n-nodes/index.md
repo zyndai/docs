@@ -76,7 +76,7 @@ N8N_PROTOCOL=https
 
 | Field | Description |
 |---|---|
-| **API URL** | Registry URL (default: `https://dns01.zynd.ai`) |
+| **API URL** | Registry URL (default: `https://zns01.zynd.ai`) |
 | **N8N API Key** | n8n API key from n8n Settings → API → Create API Key |
 
 ### Web3 Wallet Credential

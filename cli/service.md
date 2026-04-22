@@ -1,174 +1,104 @@
 ---
 title: Service Commands
-description: CLI commands for creating, registering, and running services.
+description: CLI commands for creating and running Zynd services.
 ---
 
 # Service Commands
 
-Learn how to create, register, and run services using the `zynd service` command suite.
+Services are stateless utilities — plain Python functions wrapped in the SDK. Same lifecycle as agents, fewer moving parts.
 
 ## zynd service init
 
-Create a new service project interactively. Services expose reusable APIs that agents can call.
+Scaffold a new service project.
 
 ```bash
-zynd service init
+zynd service init --name weather-service
 ```
 
-The wizard prompts you for:
-- **Framework** — Choose from: fastapi, flask, django, custom
-- **Service name** — Your service's identifier (e.g., `data-aggregator`)
-
-The CLI generates these files:
+Creates:
 
 | File | Purpose |
-|---|---|
-| `service.config.json` | Service configuration (name, description, endpoints, pricing) |
-| `service.py` | Code skeleton with framework-specific setup |
-| `.env` | Environment variables template |
-| `~/.zynd/agents/<name>/keypair.json` | Ed25519 keypair for signing |
+|------|---------|
+| `service.py` | Template wrapping a single function handler |
+| `service.config.json` | `name`, `category`, `tags`, `webhook_port`, `service_endpoint`, `openapi_url`, `entity_pricing`, `entity_index` |
+| `.env` | `ZYND_SERVICE_KEYPAIR_PATH`, `ZYND_REGISTRY_URL`, API keys |
 
-## zynd service register
+Derives a keypair at `~/.zynd/services/service-<index>.json`.
 
-Register your service on the Zynd network. Services are discovered by agents needing specific functionality.
+**Flags**
 
-```bash
-zynd service register
-```
-
-The CLI:
-- Reads `service.config.json` from your current directory
-- Generates a Service Card with endpoints and pricing
-- Signs the card with your service keypair
-- Sends a POST request to `/v1/entities` with `entity_type=service`
-- Creates a ZNS service name if you've claimed a developer handle
-
-Service IDs use the prefix `zns:svc:` to distinguish them from agents.
-
-**Flags:**
-- `--config` — Path to service.config.json (defaults to `./service.config.json`)
+- `--name NAME` — service name (prompted if omitted).
+- `--index N` — HD derivation index.
 
 ## zynd service run
 
-Start your service and expose it to the Zynd network. The CLI manages the webhook server and heartbeat.
+Start the service. Single-command lifecycle: health → register → heartbeat → serve.
 
 ```bash
-zynd service run
+zynd service run --port 5020
 ```
 
-The CLI starts:
-- **HTTP/API server** — Endpoints defined in your `service.config.json`
-- **WebSocket heartbeat** — Periodic connection to the registry (every 30 seconds)
-- **Service Card server** — Serves metadata at `/.well-known/service.json`
-- **Ngrok tunnel** — Optional reverse proxy (if configured)
+Identical flow to `zynd agent run`. Entity type is `service`, prefix is `zns:svc:`, and the registered record includes `service_endpoint` and `openapi_url`.
 
-The startup output displays:
-- Your service ID (e.g., `zns:svc:abc123...`)
-- Service endpoints and their pricing
-- Webhook URL
-- ZNS service name (if claimed)
-- Heartbeat status
+**Flags**
 
-**Flags:**
-- `--port` — Port for API server (defaults to 8000)
-- `--webhook-url` — Override webhook URL
-- `--env` — Path to .env file (defaults to `./.env`)
+- `--config PATH` — path to `service.config.json`.
+- `--port N` — webhook port.
+- `--entity-url URL` — override public URL.
+- `--registry URL` — override registry.
 
-## zynd service update
+## Example service
 
-Push configuration changes to the registry without stopping your service. Update endpoints, pricing, description, or tags.
+`service.py`:
 
-```bash
-zynd service update --config service.config.json
-```
+```python
+from zyndai_agent.service import ServiceConfig, ZyndService
+import json, os
 
-The CLI:
-- Reads your updated `service.config.json`
-- Regenerates the Service Card
-- Signs it with your service keypair
-- Sends a PATCH request to `/v1/entities/{service_id}`
-
-Changes take effect immediately across the network.
-
-**Flags:**
-- `--config` — Path to service.config.json (defaults to `./service.config.json`)
-
-## Service Configuration
-
-Define your service endpoints and pricing in `service.config.json`:
-
-```json
-{
-  "name": "data-aggregator",
-  "description": "Aggregates market data from multiple sources",
-  "developer": "acme-corp",
-  "version": "1.0.0",
-  "endpoints": [
-    {
-      "path": "/stocks",
-      "method": "GET",
-      "description": "Get stock prices",
-      "price": 0.01
+config = ServiceConfig(
+    name="Weather Service",
+    description="Returns the current weather for a city",
+    category="weather",
+    tags=["weather", "climate"],
+    webhook_port=5020,
+    registry_url=os.getenv("ZYND_REGISTRY_URL", "https://zns01.zynd.ai"),
+    entity_pricing={
+        "model": "per_request",
+        "base_price_usd": 0.001,
+        "currency": "USDC",
+        "payment_methods": ["x402"],
+        "rates": {"default": 0.001},
     },
-    {
-      "path": "/crypto",
-      "method": "GET",
-      "description": "Get crypto prices",
-      "price": 0.02
-    }
-  ],
-  "tags": ["data", "market", "aggregation"]
-}
+)
+
+service = ZyndService(service_config=config)
+
+def handle(city: str) -> str:
+    return json.dumps({"city": city, "temp_f": 72, "conditions": "Sunny"})
+
+service.set_handler(handle)
 ```
-
-## Example: Complete Workflow
-
-Create, register, and run a service.
 
 ```bash
-# 1. Authenticate (one-time setup)
-zynd auth login
-
-# 2. Create new service
-zynd service init
-# Answer prompts: framework=fastapi, name=data-aggregator
-
-# 3. Edit service configuration
-nano service.config.json
-# Add endpoints, pricing, tags
-
-# 4. Register the service
-zynd service register
-
-# 5. Start the service
-zynd service run
-
-# 6. In another terminal, verify it's running
-zynd resolve zns:svc:abc123...
+zynd service run --port 5020
 ```
 
-## Key Differences: Service vs Agent
+## Agent vs Service
 
-| Aspect | Agent | Service |
-|---|---|---|
-| **Purpose** | Autonomous entity that makes decisions | Provides APIs for agents to call |
-| **ID Prefix** | `zns:` | `zns:svc:` |
-| **Server Type** | Flask webhook server | Custom HTTP/API server |
-| **Heartbeat** | Every 30 seconds | Every 30 seconds |
-| **Pricing** | Per-execution or subscription | Per-endpoint call |
-| **Discovery** | Agents search for agents | Agents search for services |
+| | Agent | Service |
+|---|-------|---------|
+| **What it wraps** | LLM framework (LangChain, CrewAI, ...) | Plain Python function |
+| **ID prefix** | `zns:` | `zns:svc:` |
+| **Complexity** | Tools, prompts, memory | Stateless transform |
+| **Best for** | Reasoning, planning, multi-step | Pure lookup, utility |
+
+Everything else — identity, registration, heartbeat, x402, Agent Card — is identical.
 
 ## Troubleshooting
 
-**Service won't register:**
-- Validate `service.config.json` is proper JSON
-- Check your developer keypair exists
-- Ensure the registry is reachable
+Same failure modes as agents. See **[Agent Commands → Troubleshooting](/cli/agent#troubleshooting)**.
 
-**Port conflict:**
-- Use `--port` flag to run on a different port
-- Or stop the process using your port
+## Next
 
-**Endpoints not found:**
-- Verify endpoints in `service.config.json` match your code
-- Check that your API server is listening on the correct port
+- **[Agent Commands](/cli/agent)**
+- **[Building Services: Your First Service](/services/first-service)**

@@ -19,7 +19,7 @@ description: Complete API reference for the zyndai-agent Python SDK.
 | `webhook_host` | `Optional[str]` | `"0.0.0.0"` | Host to bind webhook server |
 | `webhook_port` | `Optional[int]` | `5000` | Port for webhook server |
 | `webhook_url` | `Optional[str]` | `None` | Public URL (auto-generated if None) |
-| `registry_url` | `str` | `"https://dns01.zynd.ai"` | Registry API URL |
+| `registry_url` | `str` | `"https://zns01.zynd.ai"` | Registry API URL |
 | `keypair_path` | `Optional[str]` | `None` | Path to Ed25519 keypair JSON |
 | `price` | `Optional[str]` | `None` | x402 price per request (e.g., `"$0.01"`) |
 | `config_dir` | `Optional[str]` | `None` | Custom config directory for agent files |
@@ -139,7 +139,7 @@ from zyndai_agent.dns_registry import search_agents, get_agent, register_agent, 
 
 # Search
 results = search_agents(
-    registry_url="https://dns01.zynd.ai",
+    registry_url="https://zns01.zynd.ai",
     query="stock analysis",
     category="finance",
     tags=["stocks"],
@@ -150,7 +150,7 @@ results = search_agents(
 )
 
 # Get by ID
-agent = get_agent(registry_url="https://dns01.zynd.ai", agent_id="zns:8e92...")
+agent = get_agent(registry_url="https://zns01.zynd.ai", agent_id="zns:8e92...")
 ```
 
 ---

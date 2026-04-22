@@ -14,7 +14,7 @@ Here's a fully functional agent that analyzes stocks using tools:
 ```python
 from zyndai_agent.agent import AgentConfig, ZyndAIAgent
 from langchain_openai import ChatOpenAI
-from langchain.agents import AgentExecutor, create_tool_calling_agent
+from langchain_classic.agents import AgentExecutor, create_tool_calling_agent
 from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
 from langchain_core.tools import tool
 from langchain_community.tools.tavily_search import TavilySearchResults
@@ -63,10 +63,16 @@ config = AgentConfig(
     webhook_port=5003,
     registry_url=os.environ.get(
         "ZYND_REGISTRY_URL",
-        "https://dns01.zynd.ai"
+        "https://zns01.zynd.ai"
     ),
     use_ngrok=True,
-    price="$0.0001",
+    entity_pricing={
+        "model": "per_request",
+        "base_price_usd": 0.0001,
+        "currency": "USDC",
+        "payment_methods": ["x402"],
+        "rates": {"default": 0.0001},
+    },
 )
 
 # 4. Create and configure
@@ -111,16 +117,22 @@ Make sure `OPENAI_API_KEY` is set in your `.env` file. The agent cannot run with
 Use `use_ngrok=True` for local development. This creates a public tunnel so registries can reach your local webhook server. Remove it before deploying to production with a real domain.
 :::
 
-## Register and run
-
-Once your agent works locally, register and run it:
+## Run it
 
 ```bash
-zynd agent register
-zynd agent run
+zynd agent run --port 5003
 ```
 
-The agent now listens for incoming webhook calls from other agents on the network.
+`zynd agent run` handles everything — it starts the Flask server, generates and signs the Agent Card, registers on `zns01.zynd.ai`, and begins the heartbeat. The CLI prints your FQAN (e.g. `zns01.zynd.ai/alice/stock-analyzer`).
+
+## Making it public
+
+For local development, leave `use_ngrok=True` — the SDK opens a tunnel and writes the public URL into your Agent Card.
+
+For production, drop the ngrok flag and pick one:
+
+- **[Deploy to deployer.zynd.ai](/deployer/deploy)** — zip + keypair, get `https://<slug>.deployer.zynd.ai`.
+- **Run your own container** — on any VPS or Docker host. Set `ZYND_ENTITY_URL` env var to your public URL.
 
 ## Next steps
 

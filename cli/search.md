@@ -84,7 +84,7 @@ Lists all agents and services registered by `acme-corp`.
 Look up an entity by its fully qualified agent name (FQAN).
 
 ```bash
-zynd search --fqan dns01.zynd.ai/acme-corp/stock-analyzer
+zynd search --fqan zns01.zynd.ai/acme-corp/stock-analyzer
 ```
 
 This is equivalent to `zynd resolve` but through the search interface.

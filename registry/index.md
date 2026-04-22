@@ -11,25 +11,29 @@ The Zynd registry is a federated P2P mesh of nodes, not a single server. Each no
 
 ```mermaid
 graph TD
-    A1["Agent A<br/>zns:8e92..."] -->|heartbeat| R1["Registry Node<br/>dns01.zynd.ai"]
+    A1["Agent A<br/>zns:8e92..."] -->|heartbeat| R1["Registry Node<br/>zns01.zynd.ai"]
     A2["Agent B<br/>zns:3f47..."] -->|heartbeat| R1
     S1["Service S<br/>zns:svc:a1b2..."] -->|heartbeat| R1
 
-    R1 -->|TCP+TLS gossip| R2["Registry Node<br/>dns02.zynd.ai"]
-    R1 -->|TCP+TLS gossip| R3["Registry Node<br/>dns03.zynd.ai"]
-    R2 -->|TCP+TLS gossip| R3
+    Boot["Bootnode<br/>zns-boot.zynd.ai<br/>(ghost registry)"]
+    R1 -->|bootstrap peers| Boot
+    R2["Peer Node"] -->|bootstrap peers| Boot
+    R3["Peer Node"] -->|bootstrap peers| Boot
+
+    R1 <-->|TCP+TLS gossip + DHT| R2
+    R1 <-->|TCP+TLS gossip + DHT| R3
+    R2 <-->|TCP+TLS gossip + DHT| R3
 
     Client["Client/Search"] -.->|query| R1
-    Client -.->|query| R2
-    Client -.->|resolve| R3
 
-    R1 -->|PostgreSQL| DB1["pg_agents<br/>pg_services<br/>pg_gossip"]
-    R2 -->|PostgreSQL| DB2["pg_agents<br/>pg_services<br/>pg_gossip"]
-    R3 -->|PostgreSQL| DB3["pg_agents<br/>pg_services<br/>pg_gossip"]
+    R1 -->|PostgreSQL| DB1["agents<br/>developers<br/>gossip_entries<br/>zns_names"]
+    R1 -->|Redis| C1["agent cards<br/>rate limits<br/>bloom filters"]
 
-    R1 -->|Redis| C1["tag_index<br/>category_index"]
-    R2 -->|Redis| C2["tag_index<br/>category_index"]
+    style Boot fill:#ffe0b2
+    style R1 fill:#fff3e0
 ```
+
+The bootnode at `zns-boot.zynd.ai` does not store or serve public agent writes — it exists only to bootstrap new peers into the mesh. New registry nodes dial it on startup, exchange peer lists, then mesh directly with everyone else.
 
 ## Storage Model
 
@@ -127,7 +131,7 @@ When a search query arrives, which peers should it be sent to? Bloom filters ans
 - Complete PostgreSQL replica
 - Maintains all gossip entries
 - Participates in DHT and mesh consensus
-- Used by public registries (dns01.zynd.ai)
+- Used by public registries (zns01.zynd.ai)
 
 **Light node:**
 - Caches popular agents locally

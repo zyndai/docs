@@ -12,7 +12,7 @@ Getting an agent or service onto the network takes two steps: developer registra
 Log in with your Ed25519 keypair to claim a developer identity on the network.
 
 ```bash
-zynd auth login --registry https://dns01.zynd.ai
+zynd auth login --registry https://zns01.zynd.ai
 ```
 
 This performs a one-time registration:
@@ -95,7 +95,7 @@ Or after registration:
 zynd name-bind <entity-id> my-analyzer
 ```
 
-This creates an FQAN (fully qualified agent name): `dns01.zynd.ai/acme-corp/my-analyzer`
+This creates an FQAN (fully qualified agent name): `zns01.zynd.ai/acme-corp/my-analyzer`
 
 **Request:** POST `/v1/names`
 

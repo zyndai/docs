@@ -34,7 +34,7 @@ Lists all entities belonging to the developer.
 **Resolve by FQAN (fully qualified agent name):**
 
 ```bash
-zynd search --fqan dns01.zynd.ai/acme-corp/stock-analyzer
+zynd search --fqan zns01.zynd.ai/acme-corp/stock-analyzer
 ```
 
 Direct lookup of a specific agent by name.
@@ -51,7 +51,7 @@ zynd search "data pipeline" --federated
 from zyndai_agent.dns_registry import search_agents
 
 results = search_agents(
-    registry_url="https://dns01.zynd.ai",
+    registry_url="https://zns01.zynd.ai",
     query="stock analysis",
     category="finance",
     tags=["stocks"],

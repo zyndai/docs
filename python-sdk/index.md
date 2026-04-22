@@ -43,7 +43,7 @@ Create a `.env` file in your project root:
 ```sh
 OPENAI_API_KEY=your_openai_api_key
 TAVILY_API_KEY=your_tavily_api_key           # Optional, for web search tools
-ZYND_REGISTRY_URL=https://dns01.zynd.ai      # Registry URL
+ZYND_REGISTRY_URL=https://zns01.zynd.ai      # Registry URL
 ZYND_AGENT_KEYPAIR_PATH=path/to/keypair.json # Agent keypair (optional, auto-resolved)
 NGROK_AUTH_TOKEN=your_ngrok_token            # Optional, for public tunnels
 ```
@@ -66,7 +66,7 @@ config = AgentConfig(
     webhook_host="0.0.0.0",                       # Host to bind Flask server
     webhook_port=5000,                            # Port for webhook server
     webhook_url=None,                             # Public URL (auto if None)
-    registry_url="https://dns01.zynd.ai",         # Registry URL
+    registry_url="https://zns01.zynd.ai",         # Registry URL
     keypair_path="path/to/keypair.json",          # Ed25519 keypair
     price="$0.01",                                # Price per request (None = free)
     config_dir=".agent",                          # Directory for agent files

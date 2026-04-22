@@ -24,7 +24,7 @@ config = AgentConfig(
     category="general",
     tags=["nlp", "assistant"],
     webhook_port=5000,
-    registry_url=os.environ.get("ZYND_REGISTRY_URL", "https://dns01.zynd.ai"),
+    registry_url=os.environ.get("ZYND_REGISTRY_URL", "https://zns01.zynd.ai"),
 )
 zynd_agent = ZyndAIAgent(agent_config=config)
 
@@ -62,7 +62,7 @@ config = AgentConfig(
     category="research",
     tags=["nlp", "research", "web-search"],
     webhook_port=5000,
-    registry_url=os.environ.get("ZYND_REGISTRY_URL", "https://dns01.zynd.ai"),
+    registry_url=os.environ.get("ZYND_REGISTRY_URL", "https://zns01.zynd.ai"),
     price="$0.0001",
 )
 zynd_agent = ZyndAIAgent(agent_config=config)
@@ -116,7 +116,7 @@ config = AgentConfig(
     category="general",
     tags=["nlp", "stateful"],
     webhook_port=5000,
-    registry_url=os.environ.get("ZYND_REGISTRY_URL", "https://dns01.zynd.ai"),
+    registry_url=os.environ.get("ZYND_REGISTRY_URL", "https://zns01.zynd.ai"),
 )
 zynd_agent = ZyndAIAgent(agent_config=config)
 
@@ -162,7 +162,7 @@ config = AgentConfig(
     category="research",
     tags=["nlp", "research"],
     webhook_port=5000,
-    registry_url=os.environ.get("ZYND_REGISTRY_URL", "https://dns01.zynd.ai"),
+    registry_url=os.environ.get("ZYND_REGISTRY_URL", "https://zns01.zynd.ai"),
 )
 zynd_agent = ZyndAIAgent(agent_config=config)
 
@@ -234,7 +234,7 @@ config = AgentConfig(
     tags=["stocks", "analysis", "trading"],
     webhook_host="0.0.0.0",
     webhook_port=5003,
-    registry_url=os.environ.get("ZYND_REGISTRY_URL", "https://dns01.zynd.ai"),
+    registry_url=os.environ.get("ZYND_REGISTRY_URL", "https://zns01.zynd.ai"),
     price="$0.0001",
     config_dir=".agent-stock",
     use_ngrok=True,
@@ -306,7 +306,7 @@ config = AgentConfig(
     tags=["assistant", "orchestration"],
     webhook_host="0.0.0.0",
     webhook_port=5004,
-    registry_url=os.environ.get("ZYND_REGISTRY_URL", "https://dns01.zynd.ai"),
+    registry_url=os.environ.get("ZYND_REGISTRY_URL", "https://zns01.zynd.ai"),
     config_dir=".agent-user"
 )
 
@@ -316,7 +316,7 @@ zynd_agent = ZyndAIAgent(agent_config=config)
 from zyndai_agent.dns_registry import search_agents
 
 results = search_agents(
-    registry_url=os.environ.get("ZYND_REGISTRY_URL", "https://dns01.zynd.ai"),
+    registry_url=os.environ.get("ZYND_REGISTRY_URL", "https://zns01.zynd.ai"),
     query="stock comparison financial analysis",
     category="finance",
     max_results=5,
@@ -399,7 +399,7 @@ config = ServiceConfig(
     category="developer-tools",
     tags=["text", "transform", "utility"],
     webhook_port=5021,
-    registry_url=os.environ.get("ZYND_REGISTRY_URL", "https://dns01.zynd.ai"),
+    registry_url=os.environ.get("ZYND_REGISTRY_URL", "https://zns01.zynd.ai"),
 )
 
 service = ZyndService(service_config=config)
@@ -425,7 +425,7 @@ config = AgentConfig(
     description="Agent that calls paid endpoints",
     category="general",
     webhook_port=5005,
-    registry_url=os.environ.get("ZYND_REGISTRY_URL", "https://dns01.zynd.ai"),
+    registry_url=os.environ.get("ZYND_REGISTRY_URL", "https://zns01.zynd.ai"),
 )
 
 agent = ZyndAIAgent(agent_config=config)

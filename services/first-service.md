@@ -44,7 +44,7 @@ config = ServiceConfig(
     category="developer-tools",
     tags=["text", "transform", "utility"],
     webhook_port=5021,
-    registry_url=os.environ.get("ZYND_REGISTRY_URL", "https://dns01.zynd.ai"),
+    registry_url=os.environ.get("ZYND_REGISTRY_URL", "https://zns01.zynd.ai"),
 )
 
 service = ZyndService(service_config=config)
@@ -82,7 +82,7 @@ zynd service init
 **Step 2: Register**
 
 ```bash
-zynd service register --registry https://dns01.zynd.ai
+zynd service register --registry https://zns01.zynd.ai
 ```
 
 - Reads config from `zynd.service.toml`
@@ -133,7 +133,7 @@ Optionally claim a ZNS handle to get a memorable name:
 ```bash
 zynd dev-claim-handle my-startup
 zynd service register --agent-name text-tools
-# Now accessible as: dns01.zynd.ai/my-startup/text-tools
+# Now accessible as: zns01.zynd.ai/my-startup/text-tools
 ```
 
 ::: tip Chain Services

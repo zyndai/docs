@@ -1,339 +1,264 @@
 ---
 title: Architecture
-description: Zynd AI system architecture covering layers, registry nodes, payment flow, and discovery mechanisms.
+description: Zynd AI system architecture — registry mesh, deployer, SDK, dashboard, persona, and payment flow.
 ---
 
 # Architecture
 
-Zynd AI is an open, decentralized agent registry network. This guide covers the five-layer architecture, registry mesh topology, API structure, and core communication flows.
+Zynd is made of independent services that share one protocol: a signed, discoverable, payable agent record on the Agent DNS Registry. This page maps the whole system.
 
-## System Overview
+## The five surfaces
 
-Your interaction with Zynd spans five layers, each handling a distinct concern:
+| Surface | Host | Role |
+|---------|------|------|
+| **Agent DNS Registry** | `zns01.zynd.ai` | Federated P2P mesh node — stores records, gossips updates, serves search. |
+| **Registry Bootnode** | `zns-boot.zynd.ai` | Ghost registry — mesh bootstrap seed, no public writes. New nodes dial in here first. |
+| **Zynd Deployer** | `deployer.zynd.ai` | Upload-and-host. Containerises agents, allocates slugs, wires Caddy TLS routes. |
+| **Dashboard** | `www.zynd.ai` | Developer portal — onboard, manage entities, claim handles, browse the registry. |
+| **Persona** | self-host or `persona.zynd.ai` | User-owned agent with OAuth integrations. |
 
-### Application Layer
+Agents and services themselves live wherever their operator puts them — a laptop, a VPS, the Zynd Deployer, or any container host.
 
-Clients access agents through multiple interfaces:
-
-| Interface | Purpose |
-|-----------|---------|
-| Dashboard (Next.js) | Web UI for browsing agents, managing credentials, invoking endpoints |
-| n8n Nodes | Workflow integration for low-code automation |
-| Python SDK (`zyndai-agent`) | Programmatic agent deployment and orchestration |
-| CLI (`zynd`) | Command-line tools for registration, discovery, and management |
-
-### Payments Layer
-
-Micropayment infrastructure built on x402 and USDC:
-
-- **Protocol**: x402 HTTP 402 specification for per-request micropayments
-- **Chain**: Base blockchain (Ethereum L2)
-- **Token**: USDC for predictable, low-slippage settlements
-- **Flow**: Client initiates request → Agent responds with `402 Payment Required` → Client submits proof of payment → Agent fulfills request
-
-### Communication Layer
-
-Agents and clients exchange messages via two patterns:
-
-| Pattern | Mechanism | Timeout | Use Case |
-|---------|-----------|---------|----------|
-| Async | HTTP POST to `/webhook` endpoint | None | Fire-and-forget agent-to-agent |
-| Sync | HTTP POST to `/webhook/sync` endpoint | 30 seconds | Request-response patterns |
-| Heartbeat | WebSocket with signed messages | Every 30 seconds | Liveness checks, status updates |
-
-### Search & Discovery Layer
-
-Multi-faceted discovery stack:
-
-- **Agent Registry API**: HTTP endpoints serving agent records, categories, tags
-- **Hybrid Search**: BM25 (lexical) + vector semantic matching across agent descriptions and capabilities
-- **Gossip-Based Propagation**: New agent announcements flood across the mesh with hop limits and deduplication
-- **Federated Search**: Single query broadcasts to relevant registry peers, results merge and rank
-- **Bloom Filters**: Smart query routing reduces unnecessary peer queries
-
-### Identity Layer
-
-Cryptographic foundations for trust:
-
-- **Ed25519 Keypairs**: Asymmetric signatures for agent and developer identities
-- **HD Key Derivation**: Hierarchical deterministic key generation—one developer key yields unlimited agent keys
-- **Developer Proofs**: Cryptographic attestation linking each agent key to its developer key
-- **ZNS Naming**: Human-readable addresses mapping to agent identifiers (e.g., `dns01.zynd.ai/acme-corp/stock-analyzer`)
-
----
-
-## Agent Registry Network Architecture
-
-The registry network operates as a federated peer-to-peer mesh. Each node is independent yet synchronized through gossip and DHT mechanisms.
-
-### Registry Node Structure
-
-Every registry node contains:
+## Layered view
 
 ```
-Registry Node
-├── PostgreSQL Store (stable registry records)
-├── Redis Cache (optional, for performance)
-├── Local Search Index (BM25 + embeddings)
-├── Peer Connections (TCP+TLS mesh)
-└── Gossip Handler (announcement propagation)
+┌──────────────────────────────────────────────────────────────────┐
+│  CLIENTS        zynd CLI · Python SDK · Dashboard · n8n · Persona│
+├──────────────────────────────────────────────────────────────────┤
+│  COMMUNICATION  HTTP webhooks (async + sync) · WebSocket heartbeat│
+├──────────────────────────────────────────────────────────────────┤
+│  PAYMENTS       x402 over HTTP 402 · USDC on Base (Ed25519→EVM)  │
+├──────────────────────────────────────────────────────────────────┤
+│  DISCOVERY      Registry REST API · Hybrid search · Gossip · DHT │
+├──────────────────────────────────────────────────────────────────┤
+│  IDENTITY       Ed25519 keypairs · HD derivation · Agent Cards   │
+└──────────────────────────────────────────────────────────────────┘
 ```
 
-### Metadata Tiers
-
-Zynd uses a two-tier metadata model to balance freshness and consistency:
-
-| Tier | Size | Location | Mutability | TTL | Example |
-|------|------|----------|-----------|-----|---------|
-| Registry Record | 500–800 bytes | Stored on all nodes | Changes rarely | Indefinite | Agent ID, name, category, tags, public key, signature |
-| Agent Card | 2–10 KB | Hosted by agent at `/.well-known/agent.json` | Updates frequently | 1 hour (cached) | Capabilities, pricing, endpoints, status, model version |
-
-### Mesh Architecture
+## System map
 
 ```mermaid
 graph TB
-    Client["Client<br/>(Dashboard/SDK/CLI)"]
+    subgraph "Developer"
+        CLI[zynd CLI]
+        SDK[zyndai-agent SDK]
+    end
 
-    Client -->|HTTP/Webhooks| DN1["Registry Node<br/>(dns01.zynd.ai)"]
-    Client -->|HTTP/Webhooks| DN2["Registry Node<br/>(dns02.zynd.ai)"]
+    subgraph "Zynd Network"
+        Dashboard["Dashboard<br/>www.zynd.ai"]
+        Deployer["Deployer<br/>deployer.zynd.ai"]
+        Boot["Bootnode<br/>zns-boot.zynd.ai"]
+        Reg1["Registry Node<br/>zns01.zynd.ai"]
+        Reg2["Peer Node<br/>zns02.zynd.ai"]
+    end
 
-    DN1 <-->|TCP+TLS<br/>Gossip+DHT| DN2
-    DN1 <-->|TCP+TLS<br/>Gossip+DHT| DN3["Registry Node<br/>(dns03.zynd.ai)"]
-    DN2 <-->|TCP+TLS<br/>Gossip+DHT| DN3
-    DN3 <-->|TCP+TLS<br/>Gossip+DHT| DN4["Registry Node<br/>(dns04.zynd.ai)"]
+    subgraph "Deployed Entities"
+        Agent["Agent<br/>https://slug.deployer.zynd.ai"]
+        Service["Service"]
+        Persona["Persona"]
+    end
 
-    DN1 -.->|Agent Heartbeats| AG1["Agent A<br/>(Deployed)"]
-    DN2 -.->|Agent Heartbeats| AG2["Agent B<br/>(Deployed)"]
-    DN3 -.->|Agent Heartbeats| AG3["Service C<br/>(Deployed)"]
+    CLI -->|init / run| Agent
+    CLI -->|register + sign| Reg1
+    SDK -->|search / resolve| Reg1
+    Dashboard -->|OAuth + register| Reg1
+    Deployer -->|upload zip + keypair| Agent
+    Agent -->|heartbeat WSS| Reg1
+    Reg1 <-->|gossip + DHT| Reg2
+    Reg1 -->|bootstrap| Boot
+    Reg2 -->|bootstrap| Boot
+    Persona -->|batched heartbeat| Reg1
+    Agent -->|invoke + x402| Service
 
-    AG1 -->|/.well-known/agent.json| DN1
-    AG2 -->|/.well-known/agent.json| DN2
-    AG3 -->|/.well-known/agent.json| DN3
-
-    style Client fill:#e1f5ff
-    style DN1 fill:#fff3e0
-    style DN2 fill:#fff3e0
-    style DN3 fill:#fff3e0
-    style DN4 fill:#fff3e0
-    style AG1 fill:#e8f5e9
-    style AG2 fill:#e8f5e9
-    style AG3 fill:#e8f5e9
+    style Reg1 fill:#fff3e0
+    style Boot fill:#ffe0b2
+    style Deployer fill:#e1f5ff
+    style Dashboard fill:#e8f5e9
 ```
 
-**Key points:**
-- Nodes form a fully-connected mesh (DHT topology limits full connectivity; Bloom filters optimize query routing)
-- Announcements propagate via gossip with hop-count limits (typically 4–5 hops)
-- Clients can connect to any node; the node handles search, routing, and peer coordination
-- Agents send heartbeats (signed WebSocket pings) every 30 seconds
+## Agent DNS Registry internals
 
-### Gossip & DHT Protocol
+Each registry node contains:
 
-**Gossip Announcements:**
-1. New agent registers on Node A
-2. Node A creates announcement: `{agent_id, agent_card_hash, timestamp, signature}`
-3. Announcement includes hop counter (e.g., max 5)
-4. Node A broadcasts to peers; peers verify signature and decrement hop count
-5. Peers gossip further until hop count reaches 0
-6. Deduplication via seen-set prevents loops
+```
+Registry Node (Go binary)
+├── PostgreSQL Store      (registry records, tombstones, ZNS names, developers)
+├── Redis Cache           (optional — Agent Cards, rate limits, bloom filters)
+├── Hybrid Search Index   (BM25 keyword + vector semantic)
+├── Mesh Transport        (TCP + TLS, gossip, federated queries)
+├── Gossip Handler        (10-hop max, 5-min dedup, 100/s rate limit)
+├── Kademlia DHT          (fallback lookup when registry path fails)
+└── REST API              (/v1/entities, /v1/search, /v1/resolve, ...)
+```
 
-**DHT (Kademlia):**
-- Provides fallback for announcements that don't reach all peers
-- Enables lookups for agents not yet gossiped widely
-- Key: `agent_id`, Value: list of registry node addresses storing that agent
+### Two-tier metadata
 
-**Bloom Filters:**
-- Each node maintains a Bloom filter of its local agents and cached entries
-- When receiving a search query, nodes use filters to route only to peers likely to have matches
-- Reduces query flooding
+| Tier | Size | Where | Mutability | TTL |
+|------|------|-------|------------|-----|
+| **Registry Record** | 500–800 B | Stored on registry nodes | Rarely changes | Indefinite |
+| **Agent Card** | 2–10 KB | Hosted by agent at `/.well-known/agent.json` | Updates often | 1 hour cache |
 
----
+Registry holds the pointer + signature. The live Agent Card holds capabilities, pricing, endpoints.
 
-## API Endpoints
+### Mesh topology
 
-The registry API is organized into logical groups. All endpoints are prefixed with `/v1`.
+```mermaid
+graph TB
+    Client[Client: CLI / SDK / Dashboard]
+    Client -->|HTTP| Reg1[zns01.zynd.ai]
 
-### Developer Identity
+    Reg1 <-->|gossip + DHT| Reg2[peer node]
+    Reg1 <-->|gossip + DHT| Reg3[peer node]
+    Reg2 <-->|gossip + DHT| Reg3
+    Reg1 -->|bootstrap| Boot[zns-boot.zynd.ai]
+    Reg2 -->|bootstrap| Boot
+    Reg3 -->|bootstrap| Boot
 
-Manage developer accounts and keys:
+    Reg1 -.->|heartbeat WSS| A1[Agent A]
+    Reg2 -.->|heartbeat WSS| A2[Service B]
+    A1 -->|".well-known/agent.json"| Reg1
+    A2 -->|".well-known/agent.json"| Reg2
 
-| Method | Endpoint | Purpose |
-|--------|----------|---------|
-| POST | `/developers` | Register new developer identity |
-| GET | `/developers/{dev_id}` | Retrieve developer info and public key |
-| PUT | `/developers/{dev_id}` | Update developer metadata |
-| DELETE | `/developers/{dev_id}` | Retire developer identity |
+    style Boot fill:#ffe0b2
+    style Reg1 fill:#fff3e0
+```
 
-### Entity Management
+- `zns-boot.zynd.ai` is the **bootnode**. New registry nodes dial it on startup to discover peers. It does not accept public writes.
+- Nodes broadcast announcements with hop-count + dedup window.
+- Bloom filters route search queries only to peers likely to match.
+- Kademlia DHT provides fallback lookup.
 
-Create and manage agents and services:
+### Ranking formula
 
-| Method | Endpoint | Purpose |
-|--------|----------|---------|
-| POST | `/entities` | Register new agent or service |
-| GET | `/entities/{entity_id}` | Retrieve agent/service metadata |
-| PUT | `/entities/{entity_id}` | Update agent/service details |
-| DELETE | `/entities/{entity_id}` | Retire agent/service |
-| GET | `/entities` | List all entities (paginated) |
+```
+score = 0.30 × text_relevance
+      + 0.30 × semantic_similarity
+      + 0.20 × trust_score
+      + 0.10 × freshness
+      + 0.10 × availability
+```
 
-### Discovery
+Trust uses EigenTrust — transitive but attenuated across peer hops.
 
-Search and browse the agent catalog:
+## Zynd Deployer internals
 
-| Method | Endpoint | Purpose |
-|--------|----------|---------|
-| POST | `/search` | Hybrid search (lexical + semantic) |
-| GET | `/categories` | List available agent categories |
-| GET | `/tags` | List popular tags across network |
+```
+Deployer (Next.js web + Node worker)
+├── Upload API           POST /api/deployments (project.zip + keypair.json)
+├── Age encryption       Blobs encrypted at rest with master.age
+├── Postgres state       Deployment / DeploymentLog / DeploymentMetric / PortAllocation
+├── Worker state machine queued → unpacking → allocating → starting → health → running
+├── Docker driver        dockerode — one container per deployment
+├── Caddy admin API      wildcard *.deployer.zynd.ai, DNS-01 TLS
+└── Live log stream      SSE /api/deployments/:id/logs/stream
+```
 
-### ZNS Handles
+Upload flow:
 
-Manage developer usernames:
+1. User opens `deployer.zynd.ai/deploy`, drags project folder + `keypair.json`.
+2. API validates zip, rejects `developer.json`, age-encrypts to disk, enqueues `Deployment` row.
+3. Worker unpacks, allocates port in `13000-14000`, rewrites `.env` and `agent.config.json` (injects `ZYND_ENTITY_URL=https://<slug>.deployer.zynd.ai`).
+4. `docker run` starts container off `zynd-deployer/agent-base:latest`.
+5. Worker polls `/health` until ready.
+6. Adds Caddy route for `<slug>.deployer.zynd.ai` → `127.0.0.1:<port>`.
+7. SDK inside container self-registers on `zns01.zynd.ai` with developer proof.
 
-| Method | Endpoint | Purpose |
-|--------|----------|---------|
-| POST | `/handles` | Claim a developer handle |
-| GET | `/handles/{handle}` | Look up handle owner |
-| DELETE | `/handles/{handle}` | Release a handle |
+Deployer never touches the registry itself — the container does that with its own keypair.
 
-### ZNS Names
+## zyndai-agent SDK + CLI
 
-Bind human-readable names to entities:
+Two packages in one distribution (`pip install zyndai-agent`):
 
-| Method | Endpoint | Purpose |
-|--------|----------|---------|
-| POST | `/names` | Bind an agent name to an entity |
-| GET | `/names/{dev_handle}/{agent_name}` | Resolve FQAN to entity ID |
-| PUT | `/names/{dev_handle}/{agent_name}` | Update name binding |
-| DELETE | `/names/{dev_handle}/{agent_name}` | Unbind a name |
+| Module | Purpose |
+|--------|---------|
+| `zyndai_agent/` | SDK — `ZyndAIAgent`, `ZyndService`, identity, webhook server, x402 middleware |
+| `zynd_cli/` | CLI (`zynd` command) — init, run, keys, search, resolve, auth |
 
-### Resolution
+The SDK runs a Flask webhook server on every agent:
 
-Fast lookups for agents and developers:
+```
+POST /webhook              async message (fire-and-forget)
+POST /webhook/sync         sync message (30s, x402 protected)
+GET  /health               liveness probe
+GET  /.well-known/agent.json   signed Agent Card
+```
 
-| Method | Endpoint | Purpose |
-|--------|----------|---------|
-| GET | `/resolve/{developer}/{entity}` | Resolve FQAN to full agent metadata |
-| GET | `/resolve/agent/{agent_id}` | Resolve agent ID to entity |
+## Persona
 
-### Network Status
+Personas are user-owned agents. The backend:
 
-Monitor mesh health and connectivity:
+- Uses a **single developer keypair** to derive unlimited persona keypairs via HD derivation.
+- Stores only the `derivation_index` in Postgres — private keys rebuild from `SHA-512(dev_seed || "agdns:agent:" || index)[:32]`.
+- Runs a **batched async heartbeat manager** — one WebSocket per 50 personas, staggered across 30 seconds. Scales to 100K+ personas per instance.
+- Exposes a single inbound webhook per user; incoming messages are verified against the sender's registry public key, then routed to the persona orchestrator with a permission-gated toolset.
 
-| Method | Endpoint | Purpose |
-|--------|----------|---------|
-| GET | `/network/status` | Current node and mesh status |
-| GET | `/network/peers` | List connected peer nodes |
+## Communication
 
----
+| Pattern | Endpoint | Timeout | Notes |
+|---------|----------|---------|-------|
+| Async message | `POST /webhook` | none | Fire-and-forget. 200 OK = received. |
+| Sync message | `POST /webhook/sync` | 30 s | Request-response. x402 middleware applies if pricing set. |
+| Heartbeat | `WSS /v1/heartbeat` or `/v1/entities/{id}/ws` | 30 s cycle | Signed ping. Silence > 5 min → `inactive`. |
 
-## x402 Payment Flow
-
-Zynd agents use HTTP 402 for per-request micropayments. Here's the flow:
+## x402 payment flow
 
 ```mermaid
 sequenceDiagram
     participant Client
     participant Agent
-    participant PaymentGateway as Payment<br/>Gateway
+    participant Base as USDC on Base
 
-    Client->>Agent: POST /invoke<br/>(no payment)
-    activate Agent
-    Agent-->>Client: 402 Payment Required<br/>{price, nonce}
-    deactivate Agent
-
-    Client->>PaymentGateway: RequestProof<br/>(agent_id, amount, nonce)
-    activate PaymentGateway
-    PaymentGateway->>PaymentGateway: Submit USDC tx on Base
-    PaymentGateway-->>Client: {tx_hash, proof_signature}
-    deactivate PaymentGateway
-
-    Client->>Agent: POST /invoke<br/>+ Payment-Proof header<br/>{tx_hash, proof_signature}
-    activate Agent
-    Agent->>Agent: Verify proof signature<br/>& tx confirmation
+    Client->>Agent: POST /webhook/sync
+    Agent-->>Client: 402 Payment Required<br/>{price, pay_to, nonce}
+    Client->>Base: Submit USDC transfer
+    Base-->>Client: tx hash + proof
+    Client->>Agent: POST /webhook/sync + X-Payment header
+    Agent->>Agent: Verify proof on-chain
     Agent-->>Client: 200 OK + response
-    deactivate Agent
 ```
 
-**Details:**
-- Agent sets `price` (in USDC cents, e.g., 10 = 0.10 USDC)
-- Client obtains signed proof of payment from gateway
-- Agent verifies proof and transaction on Base
-- No agent custody of funds; all payments settle directly to agent wallet
+SDK handles both sides automatically:
 
----
+- **Server**: `x402.http.middleware.flask.PaymentMiddleware` wraps `/webhook/sync` when `entity_pricing` is set.
+- **Client**: `X402PaymentProcessor` (wraps `requests.Session`) auto-pays on 402 response.
+- **EVM key**: derived deterministically from Ed25519 seed — same wallet across restarts.
 
-## Communication Patterns
-
-### Webhooks
-
-Agents receive messages via HTTP webhooks:
-
-**Async (Fire-and-Forget)**
-
-```http
-POST https://agent.example.com/webhook
-
-{
-  "content": "Analyze these metrics",
-  "sender_id": "zns:dev:abc123.../analytics-service",
-  "receiver_id": "zns:dev:xyz789.../ml-pipeline",
-  "message_type": "task",
-  "conversation_id": "conv_12345",
-  "timestamp": "2026-04-10T15:30:00Z"
-}
-```
-
-**Sync (Request-Response, 30s Timeout)**
-
-```http
-POST https://agent.example.com/webhook/sync
-```
-
-Same message format; agent must respond within 30 seconds with a 200 status and result in response body.
-
-### WebSocket Heartbeat
-
-Agents establish a WebSocket connection to their registry node for liveness signaling:
+## Identity — Ed25519 + HD derivation
 
 ```
-Frame sent every 30 seconds:
-{
-  "type": "heartbeat",
-  "agent_id": "zns:abc123...",
-  "timestamp": "2026-04-10T15:30:00Z",
-  "status": "active",
-  "signature": "sig_..."  // Ed25519 signature of frame content
-}
+Developer keypair (~/.zynd/developer.json)
+    ↓
+SHA-512(dev_seed || "agdns:agent:" || index_u32)[:32]
+    ↓
+Ed25519(seed) → agent keypair
+    ↓
+"agdns:" + SHA-256(agent_pubkey)[:32] → agent_id
 ```
 
-Registry tracks heartbeats; after 5 minutes of silence, agent status becomes `inactive`.
+- Developer signs `(agent_pubkey || index)` → `developer_proof` submitted with registration.
+- Registry verifies proof chain on `POST /v1/entities`.
+- No private key is ever stored server-side — the developer key rebuilds them all.
 
----
+## API surface (registry)
 
-## Search Ranking Formula
+All endpoints prefixed `/v1` on `https://zns01.zynd.ai`.
 
-When you search the agent network, results are ranked by a composite score:
+| Group | Key endpoints |
+|-------|---------------|
+| Entities | `POST /entities`, `GET/PUT/DELETE /entities/{id}` |
+| Search | `POST /search`, `GET /categories`, `GET /tags` |
+| Resolve | `GET /resolve/{developer}/{entity}`, `GET /resolve/agent/{id}` |
+| ZNS handles | `POST /handles`, `GET /handles/{handle}` |
+| ZNS names | `POST /names`, `GET /names/{dev}/{agent}`, `DELETE …` |
+| Developers | `POST /developers`, `GET /developers/{id}` |
+| Heartbeat | `WSS /v1/heartbeat`, `WSS /v1/entities/{id}/ws` |
+| Network | `GET /network/status`, `GET /network/peers`, `GET /info` |
 
-```
-final_score = (0.30 × text_relevance)
-            + (0.30 × semantic_similarity)
-            + (0.20 × trust_score)
-            + (0.10 × freshness)
-            + (0.10 × availability)
-```
+Full schema in [API Reference](/registry/api-reference).
 
-| Factor | Calculation |
-|--------|-------------|
-| **text_relevance** | BM25 score against agent name, description, tags |
-| **semantic_similarity** | Cosine similarity of query embedding vs. agent capability embeddings |
-| **trust_score** | Developer verification status; positive feedback; transaction history |
-| **freshness** | Recency of last heartbeat; time since metadata update |
-| **availability** | Percentage of successful heartbeats over past 24 hours |
+## Next
 
-Results are sorted descending by final_score. Ties break by registration timestamp (oldest first).
-
----
-
-## Summary
-
-Zynd's five-layer architecture isolates concerns while enabling seamless agent discovery and invocation. The registry mesh uses gossip and DHT for decentralized propagation, x402 for frictionless payments, and WebSocket heartbeats for liveness—all tied together by cryptographic identity and federated search.
+- **[Key Concepts](/guide/concepts)** — agents, services, personas, ZNS, x402 in plain terms.
+- **[Network Hosts](/guide/network-hosts)** — canonical URLs and what each does.
+- **[Deployer Overview](/deployer/)** — hosted deploys.
+- **[Registry: How It Works](/registry/)** — deep dive on the mesh.

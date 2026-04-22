@@ -144,7 +144,7 @@ async def health_check():
 Check that your registry URL is correct and reachable:
 
 ```bash
-curl https://dns01.zynd.ai/v1/entities/your-agent-id/ws
+curl https://zns01.zynd.ai/v1/entities/your-agent-id/ws
 ```
 
 If it returns a WebSocket upgrade error, the registry is responding. Check firewall settings for outbound WebSocket connections.

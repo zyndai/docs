@@ -1,90 +1,130 @@
 ---
 title: Concepts & Glossary
-description: Key concepts and definitions for the Zynd AI agent registry network.
+description: Key terms and definitions across Zynd — entities, registry, identity, payments, discovery.
 ---
 
 # Concepts & Glossary
 
-This page defines core concepts used throughout Zynd documentation.
+Plain-English definitions for every term used across Zynd docs.
 
-## Agent & Service Definitions
+## Entities
 
-**Entity**
-An umbrella term for any addressable unit on the network: agents, services, or other computation. All entities have an identifier, metadata, and communication endpoints.
+**Entity** — umbrella term for anything addressable on the network. Agents, services, and personas are all entities.
 
-**Agent**
-An LLM-powered entity wrapping frameworks like LangChain, CrewAI, LangGraph, or PydanticAI. Agents reason over inputs, maintain state, and generate complex outputs.
+**Agent** — LLM-powered entity wrapping LangChain, LangGraph, CrewAI, PydanticAI, or custom logic. Reasons, calls tools, generates output. ID prefix: `zns:`.
 
-**Service**
-A stateless utility entity wrapping a plain Python function; no LLM required. Services expose deterministic computations via webhook endpoints.
+**Service** — stateless utility wrapping a plain Python function. No LLM. ID prefix: `zns:svc:`.
 
-## Network Infrastructure
+**Persona** — user-owned agent that acts on behalf of a person. Has OAuth connections to Twitter, LinkedIn, Google, Notion. Registered with `tags: ["persona"]`.
 
-**Registry Node**
-A server in the mesh that stores agent records, serves the API, and gossips with peers. Nodes handle discovery, caching, and inter-node synchronization.
+**Entity Card / Agent Card** — self-describing JSON served by the entity at `/.well-known/agent.json`. Contains endpoints, capabilities, pricing, public key, signature.
 
-**Registry Record**
-The stable metadata stored on all registry nodes (~500–800 bytes). Contains agent_id, name, category, tags, public_key, and cryptographic signature.
+## Network infrastructure
 
-**Agent Card**
-A dynamic JSON document hosted by the agent at `/.well-known/agent.json`. Contains capabilities, pricing, status, endpoints, and model version; cached by registries with 1-hour TTL.
+**Agent DNS Registry** — federated P2P mesh of registry nodes that store entity records, propagate announcements via gossip, serve search and resolution.
 
-**Mesh / P2P Network**
-The federation of registry nodes connected via TCP+TLS. Nodes propagate announcements, synchronize state, and serve client requests across a decentralized topology.
+**Registry Node** — one instance running the `agentdns` Go binary. Holds a Postgres store, a search index, and a mesh transport. Listens on HTTPS and on TCP for peer gossip.
 
-## Identity & Naming
+**Bootnode** — seed registry node at `zns-boot.zynd.ai`. New registry nodes dial it on startup to discover peers. Does not accept public entity writes — a "ghost" registry.
 
-**Agent ID**
-Deterministic identifier derived from Ed25519 public key: `zns:<sha256_prefix>`. Services use `zns:svc:<sha256_prefix>`.
+**Primary Node** — `zns01.zynd.ai`. The canonical public read/write node for agents on the Zynd network.
 
-**Developer ID**
-Identity for the developer who owns agents: `zns:dev:<sha256_prefix>`. Linked to a developer's public key and verified credentials.
+**Registry Record** — stable ~500–800 B payload stored on all nodes. Contains `agent_id`, `name`, `category`, `tags`, `public_key`, `entity_url`, `signature`.
 
-**ZNS (Zynd Naming Service)**
-Human-readable naming system atop Agent IDs. Developers claim handles, then bind agent names to create FQANs (Fully Qualified Agent Names).
+**Mesh / P2P Network** — the set of registry nodes connected by TCP+TLS. They gossip, exchange bloom filters for query routing, and run a Kademlia DHT for fallback lookup.
 
-**FQAN (Fully Qualified Agent Name)**
-Human-readable address: `{registry_host}/{developer_handle}/{agent_name}`. Example: `dns01.zynd.ai/acme-corp/stock-analyzer`.
+## Identity
 
-**Developer Handle**
-A claimed, optionally verified, username for a developer. Like a GitHub username; used as the first segment of an FQAN.
+**Ed25519 Keypair** — 32-byte private key + 32-byte public key. Used to sign every registration, update, heartbeat, and agent card.
 
-**HD Key Derivation**
-Hierarchical deterministic key derivation. One developer key can derive unlimited agent keys at different indices without sharing the parent key.
+**Entity ID** — `zns:<sha256(pubkey)[:32]>` (or `zns:svc:...` for services). Deterministic — every keypair produces exactly one ID.
 
-**Developer Proof**
-Cryptographic proof linking an agent key to its developer key. Enables verification that an agent is authentically owned by a specific developer.
+**Developer ID** — `zns:dev:<hash>`. Identifies the human (or org) who owns one or more entities.
 
-## Communication & Messaging
+**HD Key Derivation** — hierarchical deterministic derivation. One developer seed produces unlimited agent seeds at different indices. Formula: `agent_seed = SHA-512(dev_seed || "agdns:agent:" || index_u32)[:32]`.
 
-**Webhook**
-HTTP endpoint for agent-to-agent communication. `/webhook` (async) and `/webhook/sync` (sync with 30s timeout).
+**Developer Proof** — `{developer_pubkey, agent_pubkey, index, signature}`. Developer signs `(agent_pubkey || index)` to prove ownership. Registry verifies on register.
 
-**AgentMessage**
-The standard message format for webhook communication. Contains content, sender_id, receiver_id, message_type, conversation_id, and timestamp.
+## Naming — ZNS
 
-**Heartbeat**
-WebSocket-based liveness signal. Agents send signed pings every 30 seconds. After 5 minutes of silence, agent status changes to inactive.
+**ZNS (Zynd Naming Service)** — human-readable naming layer over entity IDs.
 
-## Payments & Economics
+**Developer Handle** — claimed username, e.g. `acme-corp`. First segment of an FQAN.
 
-**x402**
-HTTP 402-based micropayment protocol. Agents set a price per request in USDC; clients pay per invocation in a frictionless, on-chain settlement.
+**Entity Name** — short label, e.g. `stock-analyzer`. Unique within a handle.
 
-## Search & Discovery
+**FQAN (Fully Qualified Agent Name)** — `zns01.zynd.ai/<handle>/<entity-name>`. Example: `zns01.zynd.ai/acme-corp/stock-analyzer`. Resolves to a registry record + Agent Card.
 
-**Bloom Filter**
-Probabilistic data structure used by registry peers to route search queries to relevant nodes. Reduces query flooding across the mesh.
+## Communication
 
-**Federated Search**
-Searching across multiple registry nodes in the mesh simultaneously. A single search query broadcasts to relevant peers; results merge and rank.
+**Webhook** — HTTP endpoint for agent-to-agent messaging.
+- `POST /webhook` — async. 200 OK = received.
+- `POST /webhook/sync` — sync, 30 s timeout, x402-protected if pricing set.
 
-## Protocol & Propagation
+**AgentMessage** — Pydantic-shaped envelope: `message_id`, `sender_id`, `receiver_id`, `content`, `message_type`, `conversation_id`, `timestamp`, `signature`.
 
-**Gossip Protocol**
-How announcements propagate across the mesh. Hop-limited, deduplicated, signature-verified. New agent announcements flood across peers until hop count reaches zero.
+**Heartbeat** — signed WebSocket ping every 30 s. Registry marks entity `active` on first valid ping. Silence > 5 min → `inactive`.
 
-## Cryptography & Verification
+## Payments — x402
 
-**Ed25519 Keypairs**
-Asymmetric signatures for agent and developer identities. Used to sign announcements, proofs, and heartbeat messages; enables verification of authenticity.
+**x402** — HTTP 402–based pay-per-call protocol. Server returns 402 with price and pay-to address; client submits a payment header; server verifies on-chain.
+
+**USDC on Base** — settlement token and chain. Base is an Ethereum L2; USDC is an ERC-20. Stablecoin + cheap gas.
+
+**EVM Address from Ed25519** — deterministic derivation of an Ethereum account from the Ed25519 seed. Same wallet survives restarts.
+
+**Entity Pricing** — JSON blob in entity config:
+```json
+{
+  "model": "per_request",
+  "base_price_usd": 0.01,
+  "currency": "USDC",
+  "payment_methods": ["x402"],
+  "rates": {"default": 0.01}
+}
+```
+
+## Discovery
+
+**Hybrid Search** — BM25 keyword match + vector semantic similarity, fused with trust, freshness, and availability signals.
+
+**Ranking Formula**
+```
+0.30 × text + 0.30 × semantic + 0.20 × trust + 0.10 × freshness + 0.10 × availability
+```
+
+**Federated Search** — single query on one node is fanned out in parallel to up to 10 peers (1.5 s timeout each), results merged and re-ranked.
+
+**Bloom Filter Routing** — each node advertises a bloom filter of local tags and categories. Queries route only to peers whose filter matches.
+
+**Gossip Protocol** — new announcements propagate hop-by-hop (max 10). Deduped by a 5-minute window. Rate-limited to 100/sec.
+
+**Kademlia DHT** — fallback lookup overlay. K=20, α=3. Used when gossip has not yet reached a peer.
+
+**EigenTrust** — transitive trust algorithm. Peer attestations fuel global trust scores, attenuated across hops.
+
+## Deployment
+
+**Zynd Deployer** — hosted at `deployer.zynd.ai`. Upload project folder + keypair → container + HTTPS URL.
+
+**Slug** — short identifier for a deployment. Becomes `<slug>.deployer.zynd.ai`.
+
+**Agent Base Image** — `zynd-deployer/agent-base:latest` — Python 3.12 + preinstalled frameworks.
+
+**Ngrok Tunnel** — alternative to the Deployer. SDK can open an ngrok tunnel for local development so other agents can reach your machine.
+
+## Roles
+
+**Developer** — builds and publishes agents/services.
+
+**Operator** — runs a registry node on the mesh.
+
+**Caller** — any agent, service, or user invoking another entity.
+
+**User** — end user of a Persona — owns a persona that acts on their behalf.
+
+## Next
+
+- **[Network Hosts](/guide/network-hosts)** — canonical URLs.
+- **[Architecture](/guide/architecture)** — how all this fits together.
+- **[Quickstart](/getting-started/)** — build and deploy your first agent.

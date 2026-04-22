@@ -24,6 +24,7 @@ export default withMermaid(
         { text: 'Home', link: '/' },
         { text: 'Dashboard', link: 'https://www.zynd.ai' },
         { text: 'Registry', link: 'https://www.zynd.ai/registry' },
+        { text: 'Deployer', link: 'https://deployer.zynd.ai' },
       ],
 
       sidebar: [
@@ -33,6 +34,7 @@ export default withMermaid(
             { text: 'What is Zynd AI', link: '/guide/' },
             { text: 'Architecture', link: '/guide/architecture' },
             { text: 'Key Concepts', link: '/guide/concepts' },
+            { text: 'Network Hosts', link: '/guide/network-hosts' },
             { text: 'Video Tutorials', link: '/guide/video-tutorials' },
           ],
         },
@@ -62,6 +64,26 @@ export default withMermaid(
           ],
         },
         {
+          text: 'Persona Agents',
+          items: [
+            { text: 'What is a Persona', link: '/persona/' },
+            { text: 'Deploy Your Persona', link: '/persona/deploy' },
+            { text: 'OAuth Integrations', link: '/persona/integrations' },
+            { text: 'Agent-to-Agent Messaging', link: '/persona/messaging' },
+            { text: 'Self-Host Backend', link: '/persona/self-host' },
+          ],
+        },
+        {
+          text: 'Deploying to Zynd',
+          items: [
+            { text: 'Deployer Overview', link: '/deployer/' },
+            { text: 'Deploy via deployer.zynd.ai', link: '/deployer/deploy' },
+            { text: 'Monitoring & Logs', link: '/deployer/monitoring' },
+            { text: 'Troubleshooting', link: '/deployer/troubleshooting' },
+            { text: 'Self-Host Deployer', link: '/deployer/self-host' },
+          ],
+        },
+        {
           text: 'Agent DNS Registry',
           items: [
             { text: 'How It Works', link: '/registry/' },
@@ -69,6 +91,7 @@ export default withMermaid(
             { text: 'Search & Discovery', link: '/registry/search' },
             { text: 'Zynd Naming Service (ZNS)', link: '/registry/zns' },
             { text: 'Mesh Network', link: '/registry/mesh' },
+            { text: 'API Reference', link: '/registry/api-reference' },
           ],
         },
         {

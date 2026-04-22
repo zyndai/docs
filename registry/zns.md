@@ -5,14 +5,14 @@ description: Human-readable names for agents and services on the Zynd network.
 
 # Zynd Naming Service (ZNS)
 
-ZNS gives human-readable names to network entities, replacing cryptographic hashes with memorable addresses like `dns01.zynd.ai/acme-corp/stock-analyzer`.
+ZNS gives human-readable names to network entities, replacing cryptographic hashes with memorable addresses like `zns01.zynd.ai/acme-corp/stock-analyzer`.
 
 ## Name Structure
 
 Every ZNS name has three components:
 
 ```
-dns01.zynd.ai / acme-corp / stock-analyzer
+zns01.zynd.ai / acme-corp / stock-analyzer
 │               │          │
 registry host   developer  entity name
                 handle
@@ -21,7 +21,7 @@ registry host   developer  entity name
 This is called an **FQAN** (fully qualified agent name). It uniquely identifies an entity across the network.
 
 **Example lookups:**
-- `dns01.zynd.ai/acme-corp/stock-analyzer` → agent_id `zns:8e92a6ed...`
+- `zns01.zynd.ai/acme-corp/stock-analyzer` → agent_id `zns:8e92a6ed...`
 - `dns02.zynd.ai/openai/gpt-integration` → service_id `zns:svc:3f47b1c2...`
 
 ## Claiming a Developer Handle
@@ -49,7 +49,7 @@ zynd dev-claim-handle my-startup
 **Check availability:**
 
 ```bash
-curl https://dns01.zynd.ai/v1/handles/my-startup/available
+curl https://zns01.zynd.ai/v1/handles/my-startup/available
 ```
 
 Once claimed, the handle is announced via gossip and becomes resolvable across the entire mesh.
@@ -86,14 +86,14 @@ zynd name-bind zns:8e92a6ed... stock-analyzer
 }
 ```
 
-**Response:** Returns FQAN (`dns01.zynd.ai/my-startup/stock-analyzer`) and version history (if name was previously bound).
+**Response:** Returns FQAN (`zns01.zynd.ai/my-startup/stock-analyzer`) and version history (if name was previously bound).
 
 ## Resolving a Name
 
 Look up an entity by its FQAN:
 
 ```bash
-zynd resolve dns01.zynd.ai/acme-corp/stock-analyzer
+zynd resolve zns01.zynd.ai/acme-corp/stock-analyzer
 ```
 
 **Request:** GET `/v1/resolve/{developer_handle}/{entity_name}`
@@ -121,14 +121,14 @@ zynd resolve dns01.zynd.ai/acme-corp/stock-analyzer
 ZNS supports version history. Each time you rebind a name, a new version is created.
 
 ```bash
-zynd name-update dns01.zynd.ai/acme-corp/stock-analyzer \
+zynd name-update zns01.zynd.ai/acme-corp/stock-analyzer \
   --new-agent-id zns:a1b2c3d4e5f6...
 ```
 
 Creates version 2 of the name, pointing to a new agent ID. Old versions are preserved for rollback:
 
 ```bash
-zynd name-rollback dns01.zynd.ai/acme-corp/stock-analyzer --version 1
+zynd name-rollback zns01.zynd.ai/acme-corp/stock-analyzer --version 1
 ```
 
 ::: tip Canary Releases
@@ -151,7 +151,7 @@ Name bindings are gossip-announced across the mesh:
 Remove a name binding:
 
 ```bash
-zynd name-unbind dns01.zynd.ai/acme-corp/stock-analyzer
+zynd name-unbind zns01.zynd.ai/acme-corp/stock-analyzer
 ```
 
 **Request:** DELETE `/v1/names/{developer_handle}/{entity_name}`

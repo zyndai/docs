@@ -18,7 +18,7 @@ config = AgentConfig(
     name="Premium Agent",
     webhook_port=5001,
     price="$0.01",  # per-request price in USDC
-    registry_url="https://dns01.zynd.ai",
+    registry_url="https://zns01.zynd.ai",
 )
 
 agent = ZyndAIAgent(agent_config=config)
