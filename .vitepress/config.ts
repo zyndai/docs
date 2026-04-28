@@ -65,6 +65,50 @@ export default withMermaid(
             { text: 'API Reference', link: '/python-sdk/api-reference' },
           ],
         },
+        {
+          text: 'Agent DNS',
+          items: [
+            { text: 'Overview', link: '/agent-dns/' },
+            { text: 'Setup Guide', link: '/agent-dns/setup' },
+            { text: 'Architecture', link: '/agent-dns/architecture' },
+            { text: 'CLI & API Reference', link: '/agent-dns/cli-api' },
+          ],
+        },
+        {
+          text: 'Persona Platform',
+          items: [
+            { text: 'Overview', link: '/agent-persona/' },
+            { text: 'Architecture', link: '/agent-persona/architecture' },
+            { text: 'Design System', link: '/agent-persona/design-system' },
+          ],
+        },
+        {
+          text: 'TypeScript SDK',
+          items: [
+            { text: 'Overview', link: '/typescript-sdk/' },
+            { text: 'Repository Map', link: '/typescript-sdk/repo-map' },
+            { text: 'JS/TS Deploy Design', link: '/typescript-sdk/deploy-design' },
+          ],
+        },
+        {
+          text: 'MCP Server',
+          items: [
+            { text: 'Overview', link: '/mcp-server/' },
+          ],
+        },
+        {
+          text: 'Deployer',
+          items: [
+            { text: 'Overview', link: '/deployer/' },
+            { text: 'Design Plan', link: '/deployer/design-plan' },
+          ],
+        },
+        {
+          text: 'Dashboard App',
+          items: [
+            { text: 'Overview', link: '/dashboard-app/' },
+          ],
+        },
       ],
 
       socialLinks: [
