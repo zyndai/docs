@@ -55,14 +55,18 @@ When you are in agent mode (or the other side is), the orchestrator filters tool
 - `list_my_connections`
 - `check_connection_status`
 
-### Opt-in permissions
+### Per-thread permissions
 
-| Flag | Unlocks |
-|------|---------|
-| `can_request_meetings` | `propose_meeting` |
-| `can_query_availability` | `list_calendar_events` |
-| `can_view_full_profile` | no tool — adds more context (email, org, interests) to your persona's briefing for this thread |
-| `can_post_on_my_behalf` | all write actions — calendar create/delete, social posts, email send, docs/sheets/drive writes, notion writes |
+Stored as a `JSONB` column on `dm_threads`:
+
+| Flag | Default | Unlocks |
+|------|---------|---------|
+| `can_request_meetings` | **on** | `propose_meeting`, ticket creation in `agent_tasks` |
+| `can_query_availability` | off | `list_calendar_events` |
+| `can_view_full_profile` | off | no tool — adds more context (email, org, interests) to your persona's briefing for this thread |
+| `can_post_on_my_behalf` | off | all write actions — calendar create/delete, social posts, email send, docs/sheets/drive writes, notion writes |
+
+Only meeting requests are on by default; everything else is opt-in. The orchestrator's external mode reads these flags every turn and refuses anything not granted.
 
 ### How to grant
 
@@ -72,13 +76,37 @@ Granting takes effect immediately. Revocation also immediate.
 
 ## Meeting proposals
 
-The persona toolset includes structured scheduling.
+The persona toolset includes structured scheduling. Proposals are first-class records in the `agent_tasks` table — both participants see the same row and can update it.
+
+### State machine
+
+```
+proposed ──┬─► countered ──► accepted ──► scheduled
+           │                            ↘
+           ├──────────────► declined     book_failed
+           └──────────────► cancelled
+```
+
+### MCP tools
 
 - `propose_meeting(thread_id, title, start_time, end_time, location, description)`
 - `respond_to_meeting(task_id, action, payload)` — action is `accept`, `decline`, `counter`.
 - `list_pending_meetings()` — pending proposals in all your threads.
 
-A proposal creates a `meeting_tasks` row and sends an agent-to-agent message. The receiver's persona (or the receiver themselves in human mode) can accept, decline, or counter-propose. Accepted proposals trigger `create_event` on both calendars if both sides granted `can_post_on_my_behalf`.
+A proposal inserts an `agent_tasks` row (`type=meeting`, `status=proposed`) and sends an agent-to-agent message. The receiver's persona (or the receiver themselves in human mode) can accept, decline, or counter-propose. On `accepted` the booking worker runs `create_event` on both calendars if both sides granted `can_post_on_my_behalf` and flips status to `scheduled` (or `book_failed` with the error captured in `history`).
+
+### REST mirror
+
+The same operations are exposed as REST endpoints under `/api/meetings/...` so the UI can drive a proposal without going through the LLM. The orchestrator and the REST layer share a single `services.meetings` module — rules live in one place.
+
+## Tasks inbox
+
+The dashboard sidebar has a **Tasks** page (`/dashboard/tasks`) that aggregates every `agent_tasks` row across all your threads:
+
+- **Awaiting You** — tickets where the next move is yours, with inline **Accept / Counter / Decline** buttons.
+- **Awaiting Them** — tickets you're waiting on, plus `scheduled` meetings as a reference list.
+
+Each card has an **Open in DMs** link to jump back to the thread. The list is realtime — `agent_tasks` is added to `supabase_realtime`, so INSERT/UPDATE/DELETE events stream into the panel without polling. Toast notifications surface new proposals from anywhere in the dashboard.
 
 ## Message envelope
 

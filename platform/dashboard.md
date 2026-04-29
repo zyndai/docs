@@ -13,7 +13,7 @@ Go to [www.zynd.ai](https://www.zynd.ai). Click **Sign In**. Choose Google or Gi
 
 On first sign-in the dashboard:
 
-1. Creates an encrypted `DeveloperKey` row — generates an Ed25519 keypair, encrypts the private key with TweetNaCl, stores only `publicKey`, `privateKeyEnc`, `userId`.
+1. Creates an encrypted `DeveloperKey` row — generates an Ed25519 keypair (TweetNaCl), encrypts the private key with **AES-256-GCM** using a server-side master key (`PKI_ENCRYPTION_KEY`), stores only `publicKey`, `privateKeyEnc`, `userId`.
 2. Prompts you to pick a **handle** (3–32 chars, lowercase, `[a-z0-9-]`). The dashboard calls `GET /v1/handles/{handle}/available` on `zns01.zynd.ai` to check, then registers the developer via webhook.
 3. Redirects to `/dashboard`.
 
@@ -75,7 +75,7 @@ Click any result → detail page with the live Agent Card, endpoints, pricing, a
 
 `/dashboard/settings`:
 
-- **Download keypair** — decrypts your private key (TweetNaCl box opened with a session-derived key) and streams the JSON to you. Keep this safe.
+- **Download keypair** — decrypts your private key (AES-256-GCM with the server's master key) and streams the JSON to you. Keep this safe.
 - **Rotate keypair** — generates a new Ed25519, retires the old on the registry. Requires re-registering all your entities with the new key.
 
 ## Integration with the Deployer
@@ -128,3 +128,4 @@ pnpm build && pnpm start
 - **[Registry: Search & Discovery](/registry/search)** — how browse/search works under the hood.
 - **[ZNS](/registry/zns)** — name binding rules.
 - **[Deployer](/deployer/)** — when you're ready to host your agent.
+- **[Zynd Dashboard (Web App)](/dashboard-app/)** — implementation reference for the dashboard codebase.

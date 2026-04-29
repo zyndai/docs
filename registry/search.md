@@ -104,6 +104,33 @@ RRF_score = Σ(1 / (k + rank_i))  # k typically 60
 
 RRF works well out of the box and doesn't require tuning weights for different datasets.
 
+## Embedding Backends
+
+Semantic search runs on a pluggable `Embedder` interface. Three backends ship with the registry:
+
+| Backend | Selector | Dependencies | Quality | Notes |
+|---------|----------|--------------|---------|-------|
+| Hash | `embedder = "hash"` | None | Basic | FNV-64a feature hashing with unigram + bigram features. Zero ML deps; good as a default for tiny meshes or CI. |
+| ONNX | `embedder = "onnx"` | Rust tokenizers + ONNX Runtime | Best | In-process transformer inference. Models: `all-MiniLM-L6-v2` (90 MB), `bge-small-en-v1.5` (130 MB), `e5-small-v2` (130 MB). |
+| HTTP | `embedder = "http"` | External service | Varies | OpenAI- or Ollama-compatible endpoint. 10 s timeout, returns zero vector on error so search degrades gracefully. |
+
+ONNX models are downloaded on first use to `~/.zynd/models/<name>/` with SHA-256 integrity verification against the built-in model registry. The `quick-install.sh` script picks ONNX + `bge-small-en-v1.5` by default.
+
+All vectors are L2-normalized on insert, so cosine similarity is computed as a single dot product. Brute-force scan is O(n) per query — fine up to ~100K agents per node; beyond that, swap in an ANN index.
+
+## Tokenizer
+
+The keyword pipeline uses an improved BM25 (`keyword_v2`) with per-field boosts:
+
+| Field | Weight |
+|-------|--------|
+| Name | 3.0× |
+| Tags | 2.0× |
+| Category | 1.5× |
+| Summary | 1.0× |
+
+Tokenization runs: split on non-alphanumeric → stopword removal (24 common English words) → Porter stemmer → synonym expansion (`ai` → `artificial-intelligence`, `ml`, …). Quoted phrases get a +5.0 exact-match bonus.
+
 ## Filters
 
 All filters are combined with AND logic (agent must match all specified filters):

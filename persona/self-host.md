@@ -73,6 +73,16 @@ GOOGLE_CLIENT_ID=...
 GOOGLE_CLIENT_SECRET=...
 NOTION_CLIENT_ID=...
 NOTION_CLIENT_SECRET=...
+
+# Telegram bridge (optional — leave unset to disable the bot)
+TELEGRAM_BOT_TOKEN=...
+```
+
+After setting `TELEGRAM_BOT_TOKEN`, point Telegram's webhook at the backend once:
+
+```bash
+curl -X POST "https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/setWebhook" \
+     -d "url=https://persona.your-domain.com/api/telegram/webhook"
 ```
 
 Run the database schema:
@@ -86,10 +96,14 @@ Tables created:
 | Table | Purpose |
 |-------|---------|
 | `persona_agents` | Persona identities (user_id, agent_id, derivation_index, public_key, profile) |
-| `dm_threads` | Connection threads with permission gates |
-| `dm_messages` | Per-thread message history |
+| `dm_threads` | Connection threads with per-thread `permissions` JSONB |
+| `dm_messages` | Per-thread message history (channel: `agent` / `user` / `telegram`) |
 | `api_tokens` | OAuth access tokens per user+provider |
-| `meeting_tasks` | Scheduling proposals and responses |
+| `agent_tasks` | Structured cross-agent tickets (meetings today; introductions, etc. later) |
+| `telegram_links` | Telegram `chat_id` ↔ Zynd `user_id` map |
+| `telegram_chat_history` | Per-chat persisted orchestrator history for the Telegram bridge |
+
+`schema.sql` is a fresh-install superset; the per-feature `db/patch_*.sql` files document each addition (agent tasks + permissions, Telegram persistence, DM thread modes, agent handles, etc.) and are safe to re-run on existing databases.
 
 Start the server:
 
@@ -188,4 +202,5 @@ Back up:
 
 - **[Deploy Your Persona](/persona/deploy)** — user flow once the backend is live.
 - **[Agent-to-Agent Messaging](/persona/messaging)** — how threads and permissions work.
+- **[Telegram Bridge](/persona/telegram)** — wire up the Telegram bot.
 - **[Registry API](/registry/api-reference)** — the endpoints your backend talks to.

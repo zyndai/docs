@@ -48,6 +48,24 @@ Array of currently connected peers with health, latency, and agent-count metrics
 
 Plain `200 OK` when the node is accepting requests.
 
+### `GET /.well-known/zynd-registry.json`
+
+The registry's signed identity proof — binds the domain to a TLS SPKI fingerprint and an Ed25519 public key. Clients and peers fetch this once during the verification handshake (see [Trust & Verification](/registry/trust-verification)).
+
+```json
+{
+  "domain": "zns01.zynd.ai",
+  "registry_id": "zns:registry:a1b2c3d4...",
+  "ed25519_public_key": "ed25519:gKH4...",
+  "tls_spki_fingerprint": "sha256:b4de3a9f...",
+  "signature": "ed25519:Pfix+qwQ..."
+}
+```
+
+### `GET /swagger/index.html`
+
+Interactive OpenAPI explorer. The raw spec is at `/swagger/doc.json`.
+
 ## Entities
 
 ### `POST /v1/entities` — register
@@ -275,7 +293,25 @@ Signature over `agent_id || timestamp`.
 
 Per-entity heartbeat endpoint. Simpler — only one agent per connection. Used by the SDK.
 
-Registry marks entity `active` on first valid signed message. Silence > 5 min → `inactive`.
+Registry marks entity `active` on first valid signed message. Silence > 5 min → `inactive`. A background sweep runs every 60 s, marking stale `active` entities `inactive` and broadcasting an `agent_status` gossip announcement to all peers.
+
+## Live activity stream
+
+### `WSS /v1/ws/activity`
+
+Read-only fan-out of the in-process event bus. Useful for dashboards and observability tools — no auth, no filtering, all events for the local node.
+
+Event categories:
+
+| Category | Events |
+|----------|--------|
+| Entity | `agent_registered`, `agent_deregistered`, `agent_heartbeat`, `agent_became_active`, `agent_became_inactive` |
+| Gossip | `gossip_outgoing`, `gossip_incoming` |
+| Search | `search_outgoing`, `search_result_incoming` |
+| Peer | `peer_connected`, `peer_disconnected` |
+| ZNS | `handle_claimed`, `handle_verified`, `name_registered`, `name_resolved` |
+
+Each subscriber gets a 256-item buffered channel; events are dropped on slow consumers rather than backpressuring the bus.
 
 ## Onboarding (restricted registries only)
 
@@ -321,3 +357,4 @@ Useful for auto-generating clients.
 - **[Registration](/registry/registration)** — end-to-end walkthrough with signatures.
 - **[Search & Discovery](/registry/search)** — ranking formula, semantic embeddings.
 - **[ZNS](/registry/zns)** — human-readable naming.
+- **[Trust & Verification](/registry/trust-verification)** — registry identity proofs and EigenTrust.

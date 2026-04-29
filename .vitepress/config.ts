@@ -70,6 +70,7 @@ export default withMermaid(
             { text: 'Deploy Your Persona', link: '/persona/deploy' },
             { text: 'OAuth Integrations', link: '/persona/integrations' },
             { text: 'Agent-to-Agent Messaging', link: '/persona/messaging' },
+            { text: 'Telegram Bridge', link: '/persona/telegram' },
             { text: 'Self-Host Backend', link: '/persona/self-host' },
           ],
         },
@@ -84,6 +85,16 @@ export default withMermaid(
           ],
         },
         {
+          text: 'Deployer (Implementation)',
+          items: [
+            { text: 'Overview', link: '/deployer-app/' },
+            { text: 'Architecture', link: '/deployer-app/architecture' },
+            { text: 'Worker Subsystems', link: '/deployer-app/worker' },
+            { text: 'API Routes', link: '/deployer-app/api-routes' },
+            { text: 'Data Model', link: '/deployer-app/data-model' },
+          ],
+        },
+        {
           text: 'Agent DNS Registry',
           items: [
             { text: 'How It Works', link: '/registry/' },
@@ -91,7 +102,23 @@ export default withMermaid(
             { text: 'Search & Discovery', link: '/registry/search' },
             { text: 'Zynd Naming Service (ZNS)', link: '/registry/zns' },
             { text: 'Mesh Network', link: '/registry/mesh' },
+            { text: 'Trust & Verification', link: '/registry/trust-verification' },
             { text: 'API Reference', link: '/registry/api-reference' },
+          ],
+        },
+        {
+          text: 'AgentDNS (Registry Binary)',
+          items: [
+            { text: 'Overview & Quickstart', link: '/agentdns/' },
+            { text: 'Architecture & Startup', link: '/agentdns/architecture' },
+            { text: 'Identity Layer', link: '/agentdns/identity' },
+            { text: 'Storage Schema', link: '/agentdns/storage' },
+            { text: 'Gossip Mesh', link: '/agentdns/gossip-mesh' },
+            { text: 'Search Engine', link: '/agentdns/search-engine' },
+            { text: 'DHT (Kademlia)', link: '/agentdns/dht' },
+            { text: 'Agent Cards & Caching', link: '/agentdns/cards-cache' },
+            { text: 'CLI Reference', link: '/agentdns/cli' },
+            { text: 'Configuration', link: '/agentdns/configuration' },
           ],
         },
         {
@@ -119,6 +146,16 @@ export default withMermaid(
           ],
         },
         {
+          text: 'Zynd Dashboard (Web App)',
+          items: [
+            { text: 'Overview', link: '/dashboard-app/' },
+            { text: 'Architecture', link: '/dashboard-app/architecture' },
+            { text: 'API Routes', link: '/dashboard-app/api-routes' },
+            { text: 'Data Model', link: '/dashboard-app/data-model' },
+            { text: 'Self-Host', link: '/dashboard-app/self-host' },
+          ],
+        },
+        {
           text: 'n8n Nodes',
           items: [
             { text: 'Overview & Installation', link: '/n8n-nodes/' },
@@ -132,6 +169,32 @@ export default withMermaid(
             { text: 'Installation & Core Concepts', link: '/python-sdk/' },
             { text: 'Examples', link: '/python-sdk/examples' },
             { text: 'API Reference', link: '/python-sdk/api-reference' },
+          ],
+        },
+        {
+          text: 'Python SDK (Internals)',
+          items: [
+            { text: 'Module Map', link: '/python-sdk-internals/' },
+            { text: 'Lifecycle Modules', link: '/python-sdk-internals/lifecycle' },
+            { text: 'Networking & Payments', link: '/python-sdk-internals/networking' },
+          ],
+        },
+        {
+          text: 'TypeScript SDK',
+          items: [
+            { text: 'Overview & Quickstart', link: '/ts-sdk/' },
+            { text: 'CLI Reference', link: '/ts-sdk/cli' },
+            { text: 'Programmatic API', link: '/ts-sdk/programmatic' },
+            { text: 'Entity Card & x402', link: '/ts-sdk/entity-card' },
+          ],
+        },
+        {
+          text: 'MCP Server',
+          items: [
+            { text: 'Overview', link: '/mcp-server/' },
+            { text: 'Tools Reference', link: '/mcp-server/tools' },
+            { text: 'Persona Runner', link: '/mcp-server/persona-runner' },
+            { text: 'Configuration', link: '/mcp-server/configuration' },
           ],
         },
       ],

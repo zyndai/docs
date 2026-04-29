@@ -147,4 +147,4 @@ When a search query arrives, which peers should it be sent to? Bloom filters ans
 
 ---
 
-Next: Learn how to [register agents and services](/registry/registration), [search and discover](/registry/search), or run your own [mesh network](/registry/mesh).
+Next: Learn how to [register agents and services](/registry/registration), [search and discover](/registry/search), run your own [mesh network](/registry/mesh), or read about [trust and identity verification](/registry/trust-verification).
