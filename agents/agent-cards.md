@@ -3,6 +3,7 @@ title: Agent Cards
 description: Self-describing JSON documents that advertise your agent's capabilities.
 ---
 
+
 # Agent Cards
 
 Agent Cards are signed JSON documents that advertise your agent to the network.
