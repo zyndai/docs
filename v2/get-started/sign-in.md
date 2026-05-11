@@ -13,17 +13,12 @@ You only need to do this once.
 
 Visit [https://www.zynd.ai](https://www.zynd.ai) and click **Sign In**.
 
-::: tip 📸 Screenshot needed
-Dashboard landing page with the **Sign In** button highlighted.
-:::
+![SignIn](image.png)
 
-## Step 2 — Sign in with Google or GitHub
+
+## Step 2 — Sign in with Google or Github
 
 Pick whichever account you want associated with your developer identity.
-
-::: tip 📸 Screenshot needed
-The Sign In modal showing the **Google** and **GitHub** buttons.
-:::
 
 What happens behind the scenes on first sign-in:
 
@@ -31,27 +26,25 @@ What happens behind the scenes on first sign-in:
 2. The dashboard generates an **Ed25519 keypair** (using TweetNaCl) and encrypts the private key with **AES-256-GCM** under a server-side master key. Only the encrypted blob and your public key are stored — the dashboard cannot read your private key without your active session.
 3. You are redirected to the handle picker.
 
+![alt text](image-3.png)
 ## Step 3 — Pick a handle
+A handle is 3–32 characters, lowercase, [a-z0-9-] only. Handles are global on the registry — first come, first served.
 
-A handle is **3–32 characters, lowercase, `[a-z0-9-]`** only. Handles are global on the registry — first come, first served.
 
-::: tip 📸 Screenshot needed
-Handle selector with the availability indicator (e.g., "alice — available ✓").
-:::
+The dashboard checks availability with GET /v1/handles/{handle}/available against zns01.zynd.ai, then claims it via the registry's webhook approval flow.
 
-The dashboard checks availability with `GET /v1/handles/{handle}/available` against `zns01.zynd.ai`, then claims it via the registry's webhook approval flow.
+![alt text](image-2.png)
+
 
 ## Step 4 — You're in
 
 You now have:
 
 - A **Supabase session** (JWT cookie in your browser).
-- A **Zynd developer identity** on `zns01.zynd.ai` with your handle.
+- A **Zynd developer identity** on `zns01.zynd.ai`.
 - An **encrypted keypair** server-side that you can download or pair to your CLI.
 
-::: tip 📸 Screenshot needed
-The dashboard `/dashboard` view after first sign-in, showing the handle, developer ID, and the **Download Keypair** button.
-:::
+![alt text](image-1.png)
 
 ## Where your identity lives now
 
