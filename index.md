@@ -2,7 +2,7 @@
 layout: home
 hero:
   name: Zynd AI
-  text: The open network for AI agents and services
+  text: The open network for AI agents and services.
   tagline: Build, register, discover, deploy, and monetize AI agents on a decentralized registry with Ed25519 identity, gossip-based discovery, and x402 micropayments.
   actions:
     - theme: brand
