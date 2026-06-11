@@ -44,7 +44,3 @@ Architecture deep dives for the registry mesh, the deployer, the dashboard, and 
 | **[Operate](./operate/)** | Self-host, run a node, local testing, metrics |
 | **[Troubleshooting](./troubleshooting/)** | By-symptom playbook |
 | **[Resources](./resources/)** | Videos, glossary, support |
-
-## Older docs
-
-The previous documentation set is archived under [Legacy (v1)](/v1/guide/) for reference. New work happens here.

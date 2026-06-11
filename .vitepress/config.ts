@@ -33,7 +33,6 @@ export default withMermaid(
         { text: 'Get Started', link: '/v2/get-started/' },
         { text: 'Reference', link: '/v2/reference/' },
         { text: 'Architecture', link: '/v2/architecture/' },
-        { text: 'Legacy (v1)', link: '/v1/guide/' },
         { text: 'Dashboard', link: 'https://www.zynd.ai' },
         { text: 'Deployer', link: 'https://deployer.zynd.ai' },
       ],
