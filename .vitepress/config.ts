@@ -6,7 +6,7 @@ import { tabsMarkdownPlugin } from 'vitepress-plugin-tabs'
 // were authored against the original paths (/agents/, /services/, /cli/, etc.),
 // so we tell VitePress to ignore those when checking the build.
 const LEGACY_PATH_PATTERN =
-  /^\/(?:agents|services|persona|cli|registry|agentdns|deployer|deployer-app|dashboard-app|python-sdk|python-sdk-internals|ts-sdk|mcp-server|n8n-nodes|identity|getting-started|guide|platform)(?:\/|$)/
+  /^\/(?:agents|services|persona|cli|registry|agentdns|deployer|deployer-app|dashboard-app|python-sdk|python-sdk-internals|ts-sdk|mcp-server|identity|getting-started|guide|platform)(?:\/|$)/
 
 export default withMermaid(
   defineConfig({

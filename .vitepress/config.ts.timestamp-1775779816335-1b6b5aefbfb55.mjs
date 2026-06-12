@@ -92,14 +92,6 @@ var config_default = withMermaid(
           ]
         },
         {
-          text: "n8n Nodes",
-          items: [
-            { text: "Overview & Installation", link: "/n8n-nodes/" },
-            { text: "Node Reference", link: "/n8n-nodes/node-reference" },
-            { text: "Building a Paid Workflow", link: "/n8n-nodes/building-paid-workflow" }
-          ]
-        },
-        {
           text: "Python SDK",
           items: [
             { text: "Installation & Core Concepts", link: "/python-sdk/" },
